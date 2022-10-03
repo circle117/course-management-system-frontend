@@ -1,44 +1,45 @@
 <template>
-    <el-form class="login" ref="formInline" :model="formInline" :rules="ruleInline" :inline=false>
-      <h1>教务管理系统</h1>
-      <br>
-      <el-form-item prop="username">
-        <el-input type="text" v-model="formInline.username" placeholder="用户名">
-          <i class="el-icon-user-solid" slot="prepend"></i>
-        </el-input>
-      </el-form-item>
-      <el-form-item prop="password">
-        <el-input type="password" v-model="formInline.password" placeholder="密码">
-          <i class="el-icon-lock" slot="prepend"></i>
-        </el-input>
-      </el-form-item>
-      <el-form-item prop="type">
-        <template>
-          <el-radio v-model="formInline.type" label="student">学生</el-radio>
-          <el-radio v-model="formInline.type" label="teacher">教师</el-radio>
-        </template>
-      </el-form-item>
-      <el-form-item>
-        <el-button type="primary" @click="handleSubmit()">登录</el-button>
-      </el-form-item>
-    </el-form>
+  <el-form class="login" ref="form" :model="form" :rules="rule" :inline=false>
+    <h1>Course Management System</h1>
+    <br>
+    <el-form-item prop="username">
+      <el-input type="text" v-model="form.username" placeholder="username">
+        <i class="el-icon-user-solid" slot="prepend"></i>
+      </el-input>
+    </el-form-item>
+    <el-form-item prop="password">
+      <el-input type="password" v-model="form.password" placeholder="password">
+        <i class="el-icon-lock" slot="prepend"></i>
+      </el-input>
+    </el-form-item>
+    <el-form-item>
+      <el-radio-group v-model="form.type">
+        <el-radio label="student">Student</el-radio>
+        <el-radio label="teacher">Teacher</el-radio>
+        <el-radio label="administrator">Administrator</el-radio>
+      </el-radio-group>
+    </el-form-item>
+    <el-form-item>
+      <el-button type="primary" @click="handleSubmit()">Sign In</el-button>
+    </el-form-item>
+  </el-form>
 </template>
 
 <script>
 export default {
   data () {
     return {
-      formInline: {
+      form: {
         username: '',
         password: '',
         type: 'student'
       },
-      ruleInline: {
-        user: [
-          { required: true, message: '请输入用户名', trigger: 'blur' }
+      rule: {
+        username: [
+          { required: true, message: 'Please enter the username', trigger: 'blur' }
         ],
         password: [
-          { required: true, message: '请输入密码', trigger: 'blur' },
+          { required: true, message: 'Please enter the password', trigger: 'blur' },
           { type: 'string', min: 2, message: 'The password length cannot be less than 6 bits', trigger: 'blur' }
         ]
       }
@@ -46,27 +47,32 @@ export default {
   },
   methods: {
     handleSubmit () {
-      this.$axios.get('http://localhost:5000/logIn', {
+      this.$axios.get('http://localhost:5000/signIn', {
         params: {
-          username: this.formInline.username,
-          password: this.formInline.password,
-          type: this.formInline.type
+          username: this.form.username,
+          password: this.form.password,
+          type: this.form.type
         }
       }).then(response => {
-        if (response.data.logInStatus === 'success') {
-          console.log(response.data.logInStatus)
+        if (response.data.signInStatus === 'success') {
+          console.log(response.data.signInStatus)
           // delete response.data.logInStatus
           this.$message({
-            message: '登录成功',
+            message: 'Sign in successfully!',
             type: 'success'
           })
-          if (this.formInline.type === 'student') {
+          if (this.form.type === 'student') {
             console.log('student')
+            var selectedCourses = JSON.parse(response.data.selectedCourses)
             this.$router.push({
               name: 'SelectCourse',
-              params: response.data
+              params: {
+                no: response.data.no,
+                name: response.data.name,
+                selectedCourses: selectedCourses
+              }
             })
-          } else if (this.formInline.type === 'manage') {
+          } else if (this.form.type === 'manage') {
             this.$router.push({
               name: 'Manage',
               params: {
@@ -76,7 +82,7 @@ export default {
                 studentInfo: response.data.studentInfo
               }
             })
-          } else if (this.formInline.type === 'teacher') {
+          } else if (this.form.type === 'teacher') {
             this.$router.push({
               name: 'GradeManage',
               params: {
@@ -86,7 +92,7 @@ export default {
             })
           }
         } else {
-          this.$message.error('用户名或密码输入错误!')
+          this.$message.error('Username or password is wrong!')
         }
       }).catch(error => {
         console.log(error)
@@ -98,14 +104,15 @@ export default {
 
 <style>
 .login{
-  position: absolute;/*绝对定位*/
-  width: 300px;
-  height: 200px;
+  position: absolute;
+  width: 600px;
+  height: 400px;
 
-  text-align: center;/*(让div中的内容居中)*/
+  text-align: center;
   top: 50%;
   left: 50%;
+  margin-left: -300px;
   margin-top: -200px;
-  margin-left: -150px;
+
 }
 </style>
