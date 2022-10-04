@@ -56,7 +56,7 @@
                 <el-button type="primary" :disabled="button1IsAble" @click="handleSelect()">Select</el-button>
               </el-form-item>
               <el-form-item>
-                <el-button type="info" :disabled="!inputCourseCode" @click="handleEmpty()">Clear</el-button>
+                <el-button plain :disabled="!inputCourseCode" @click="handleEmpty()">Clear</el-button>
               </el-form-item>
             </el-form>
             <el-table
