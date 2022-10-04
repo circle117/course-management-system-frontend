@@ -316,10 +316,10 @@ export default {
 }
 .el-menu {
   background-color: #FFF4CF;
-  height: 100vh;
+  height: 100%;
 }
 .el-container {
-  height: 100%
+  height: 100vh
 }
 .el-menu-item.is-active {
   background-color: #FFCB42;
