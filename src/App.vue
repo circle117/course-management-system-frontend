@@ -62,7 +62,6 @@ export default {
             type: 'success'
           })
           if (this.form.type === 'student') {
-            console.log('student')
             var selectedCourses = JSON.parse(response.data.selectedCourses)
             this.$router.push({
               name: 'SelectCourse',
@@ -72,14 +71,12 @@ export default {
                 selectedCourses: selectedCourses
               }
             })
-          } else if (this.form.type === 'manage') {
+          } else if (this.form.type === 'administrator') {
             this.$router.push({
-              name: 'Manage',
+              name: 'AdministratorManage',
               params: {
-                user: 'SYSTEM',
-                courseInfo: response.data.courseInfo,
-                teacherInfo: response.data.teacherInfo,
-                studentInfo: response.data.studentInfo
+                no: response.data.no,
+                name: response.data.name,
               }
             })
           } else if (this.form.type === 'teacher') {
