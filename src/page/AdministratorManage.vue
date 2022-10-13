@@ -36,10 +36,6 @@
               <span>Grade Management</span>
             </template>
           </el-submenu>
-          <el-menu-item index="2" @click.native="">
-            <i class="el-icon-data-analysis"></i>
-            <span>Grade Distribution</span>
-          </el-menu-item>
           <el-submenu index="3">
             <template slot="title">
               <i class="el-icon-info"></i>
@@ -94,6 +90,7 @@
               </el-form>
             </div>
           </template>
+          <!-- edit/delete course -->
           <template v-if="activeNameCourse==='second'">
             <div>
               <el-row :gutter="20">
@@ -127,7 +124,6 @@
               <el-table
                 ref="singleTable"
                 :data="dataCourse.filter(dataCourse => !searchCourse ||dataCourse.cCode.includes(searchCourse))"
-                :default-sort = "{prop: 'cCode', order: 'ascending'}"
                 highlight-current-row
                 @current-change="handleCourseSelectChange"
                 height="250"
@@ -190,6 +186,279 @@
             </div>
           </template>
         </template>
+        <!-- Student Info Management -->
+        <template v-if="activeNameMenu==='3-2'">
+          <el-tabs v-model="activeNameStudent" @tab-click="handleStudentClick">
+            <el-tab-pane label="Create Student" name="first"></el-tab-pane>
+            <el-tab-pane label="Edit/Delete Student" name="second"></el-tab-pane>
+          </el-tabs>
+          <!-- create student -->
+          <template v-if="activeNameStudent==='first'">
+            <div>
+              <el-row :gutter="20">
+                <el-col :span="12">
+                  <el-button
+                    type="primary"
+                    @click="handleCreateStudent"
+                    :disabled="!newStudent.no"
+                    style="width: 100%">Create</el-button>
+                </el-col>
+                <el-col :span="12">
+                  <el-button plain @click="handleClearStudent" style="width: 100%">Clear</el-button>
+                </el-col>
+              </el-row>
+            </div>
+            <br>
+            <div>
+              <el-form
+                :model="newStudent"
+                label-width="120px">
+                <el-form-item label="Student No">
+                  <el-input v-model="newStudent.no" maxlength="8" show-word-limit></el-input>
+                </el-form-item>
+                <div>
+                  <el-row :gutter="10">
+                    <el-col :span="12">
+                      <el-form-item label="First Name">
+                        <el-input v-model="newStudent.firstName"></el-input>
+                      </el-form-item>
+                    </el-col>
+                    <el-col :span="12">
+                      <el-form-item label="Last Name">
+                        <el-input v-model="newStudent.lastName"></el-input>
+                      </el-form-item>
+                    </el-col>
+                  </el-row>
+                </div>
+                <el-form-item label="Gender">
+                  <el-radio v-model="newStudent.gender" label="male">Male</el-radio>
+                  <el-radio v-model="newStudent.gender" label="female">Female</el-radio>
+                </el-form-item>
+                <el-form-item label="Age">
+                  <el-input-number v-model="newStudent.age" :min="1"></el-input-number>
+                </el-form-item>
+                <el-form-item label="Department">
+                  <el-input v-model="newStudent.department"></el-input>
+                </el-form-item>
+                <el-form-item label="Username">
+                  <el-input v-model="newStudent.username"></el-input>
+                </el-form-item>
+                <el-form-item label="Password">
+                  <el-input v-model="newStudent.password"></el-input>
+                </el-form-item>
+              </el-form>
+            </div>
+          </template>
+          <template v-if="activeNameStudent==='second'">
+            <div>
+              <el-table
+                :data="dataStudent.filter(dataStudent => !searchStudent ||dataStudent.name.includes(searchStudent))"
+                empty-text="No student data."
+                style="width: 100%">
+                <el-table-column prop="no" label="Student No"></el-table-column>
+                <el-table-column prop="name" label="Name">
+                  <template slot-scope="scope">
+                    <span v-show="!scope.row.edit">{{scope.row.name}}</span>
+                    <el-input v-show="scope.row.edit" size="mini" v-model="scope.row.name"></el-input>
+                  </template>
+                </el-table-column>
+                <el-table-column prop="gender" label="Gender">
+                  <template slot-scope="scope">
+                    <span v-show="!scope.row.edit">{{scope.row.gender}}</span>
+                    <el-input v-show="scope.row.edit" size="mini" v-model="scope.row.gender"></el-input>
+                  </template>
+                </el-table-column>
+                <el-table-column prop="age" label="Age">
+                  <template slot-scope="scope">
+                    <span v-show="!scope.row.edit">{{scope.row.age}}</span>
+                    <el-input v-show="scope.row.edit" size="mini" v-model="scope.row.age"></el-input>
+                  </template>
+                </el-table-column>
+                <el-table-column prop="department" label="Department">
+                  <template slot-scope="scope">
+                    <span v-show="!scope.row.edit">{{scope.row.department}}</span>
+                    <el-input v-show="scope.row.edit" size="mini" v-model="scope.row.department"></el-input>
+                  </template>
+                </el-table-column>
+                <el-table-column prop="username" label="Username"></el-table-column>
+                <el-table-column label="" with="55" align="center">
+                  <template slot="header" slot-scope="scope">
+                    <el-input
+                      v-model="searchStudent"
+                      size="mini"
+                      placeholder="Student Name"></el-input>
+                  </template>
+                  <template slot-scope="scope">
+                    <el-button
+                      v-show="!scope.row.edit"
+                      type="primary"
+                      icon="el-icon-edit"
+                      circle
+                      @click.native.prevent="handleChangeEditStatusStudent(scope.$index, scope.row)"
+                      size="mini">
+                    </el-button>
+                    <el-button
+                      v-show="scope.row.edit"
+                      type="primary"
+                      icon="el-icon-check"
+                      circle
+                      @click.native.prevent="handleEditStudent(scope.$index, scope.row)"
+                      size="mini">
+                    </el-button>
+                    <el-button
+                      type="danger"
+                      icon="el-icon-delete"
+                      circle
+                      @click.native.prevent="handleDeleteStudent(scope.$index, scope.row)"
+                      size="mini">
+                    </el-button>
+                  </template>
+                </el-table-column>
+              </el-table>
+            </div>
+          </template>
+        </template>
+        <!-- Teacher Info Management -->
+        <template v-if="activeNameMenu==='3-3'">
+          <el-tabs v-model="activeNameTeacher" @tab-click="handleTeacherClick">
+            <el-tab-pane label="Create Teacher" name="first"></el-tab-pane>
+            <el-tab-pane label="Edit/Delete Teacher" name="second"></el-tab-pane>
+          </el-tabs>
+          <!-- create teacher -->
+          <template v-if="activeNameTeacher==='first'">
+            <div>
+              <el-row :gutter="20">
+                <el-col :span="12">
+                  <el-button
+                    type="primary"
+                    @click="handleCreateTeacher"
+                    :disabled="!newTeacher.no || !newTeacher.username"
+                    style="width: 100%">Create</el-button>
+                </el-col>
+                <el-col :span="12">
+                  <el-button plain @click="handleClearTeacher" style="width: 100%">Clear</el-button>
+                </el-col>
+              </el-row>
+            </div>
+            <br>
+            <div>
+              <el-form
+                :model="newTeacher"
+                label-width="120px">
+                <el-form-item label="Teacher No">
+                  <el-input v-model="newTeacher.no" maxlength="8" show-word-limit></el-input>
+                </el-form-item>
+                <div>
+                  <el-row :gutter="10">
+                    <el-col span="12">
+                      <el-form-item label="First Name">
+                        <el-input v-model="newTeacher.firstName"></el-input>
+                      </el-form-item>
+                    </el-col>
+                    <el-col span="12">
+                      <el-form-item label="Last Name">
+                        <el-input v-model="newTeacher.lastName"></el-input>
+                      </el-form-item>
+                    </el-col>
+                  </el-row>
+                </div>
+                <el-form-item label="Gender">
+                  <el-radio v-model="newTeacher.gender" label="male">Male</el-radio>
+                  <el-radio v-model="newTeacher.gender" label="female">Female</el-radio>
+                </el-form-item>
+                <el-form-item label="Age">
+                  <el-input-number v-model="newTeacher.age" :min="1"></el-input-number>
+                </el-form-item>
+                <el-form-item label="Department">
+                  <el-input v-model="newTeacher.department"></el-input>
+                </el-form-item>
+                <el-form-item label="Username">
+                  <el-input v-model="newTeacher.username"></el-input>
+                </el-form-item>
+                <el-form-item label="Password">
+                  <el-input v-model="newTeacher.password"></el-input>
+                </el-form-item>
+              </el-form>
+            </div>
+          </template>
+          <!-- edit teacher -->
+          <template v-if="activeNameTeacher==='second'">
+            <div>
+              <el-table
+                :data="dataTeacher.filter(dataTeacher => !searchTeacher ||dataTeacher.name.includes(searchTeacher))"
+                empty-text="No teacher data."
+                style="width: 100%">
+                <el-table-column prop="no" label="Teacher No"></el-table-column>
+                <el-table-column prop="name" label="Name">
+                  <template slot-scope="scope">
+                    <span v-show="!scope.row.edit">{{scope.row.name}}</span>
+                    <el-input v-show="scope.row.edit" size="mini" v-model="scope.row.name"></el-input>
+                  </template>
+                </el-table-column>
+                <el-table-column prop="gender" label="Gender">
+                  <template slot-scope="scope">
+                    <span v-show="!scope.row.edit">{{scope.row.gender}}</span>
+                    <el-input v-show="scope.row.edit" size="mini" v-model="scope.row.gender"></el-input>
+                  </template>
+                </el-table-column>
+                <el-table-column prop="age" label="Age">
+                  <template slot-scope="scope">
+                    <span v-show="!scope.row.edit">{{scope.row.age}}</span>
+                    <el-input v-show="scope.row.edit" size="mini" v-model="scope.row.age"></el-input>
+                  </template>
+                </el-table-column>
+                <el-table-column prop="department" label="Department">
+                  <template slot-scope="scope">
+                    <span v-show="!scope.row.edit">{{scope.row.department}}</span>
+                    <el-input v-show="scope.row.edit" size="mini" v-model="scope.row.department"></el-input>
+                  </template>
+                </el-table-column>
+                <el-table-column prop="username" label="Username"></el-table-column>
+                <el-table-column label="" with="55" align="center">
+                  <template slot="header" slot-scope="scope">
+                    <el-input
+                      v-model="searchTeacher"
+                      size="mini"
+                      placeholder="Teacher Name"></el-input>
+                  </template>
+                  <template slot-scope="scope">
+                    <el-button
+                      v-show="!scope.row.edit"
+                      type="primary"
+                      icon="el-icon-edit"
+                      circle
+                      :disabled="!editableTeacher"
+                      @click.native.prevent="handleChangeEditStatusTeacher(scope.$index, scope.row)"
+                      size="mini">
+                    </el-button>
+                    <el-button
+                      v-show="scope.row.edit"
+                      type="primary"
+                      icon="el-icon-check"
+                      circle
+                      @click.native.prevent="handleEditTeacher(scope.$index, scope.row)"
+                      size="mini">
+                    </el-button>
+                    <el-button
+                      v-show="scope.row.edit"
+                      icon="el-icon-close"
+                      circle
+                      @click.native.prevent="handleCancelEditTeacher(scope.$index, scope.row)"
+                      size="mini">
+                    </el-button>
+                    <el-button
+                      type="danger"
+                      icon="el-icon-delete"
+                      circle
+                      @click.native.prevent="handleDeleteTeacher(scope.$index, scope.row)"
+                      size="mini">
+                    </el-button>
+                  </template>
+                </el-table-column>
+              </el-table>
+            </div>
+          </template>
+        </template>
       </el-main>
     </el-container>
   </el-container>
@@ -218,7 +487,41 @@ export default {
       dataCourse: [],
       courseSelection: '',
       searchCourse: '',
-      oldCourse: {}
+      oldCourse: {},
+      // student management
+      activeNameStudent: 'first',
+      newStudent: {
+        no: null,
+        name: null,
+        firstName: null,
+        lastName: null,
+        gender: "male",
+        age: '18',
+        department: null,
+        username: null,
+        password: null
+      },
+      oldStudent: {},
+      editStudent: {},
+      dataStudent: [],
+      searchStudent: '',
+      // teacher management
+      activeNameTeacher: 'first',
+      newTeacher:{
+        no: null,
+        name: null,
+        firstName: null,
+        lastName: null,
+        gender: "male",
+        age: 40,
+        department: null,
+        username: null,
+        password: null
+      },
+      searchTeacher: '',
+      oldTeacher: {},
+      editTeacher: {},
+      editableTeacher: true
     }
   },
   methods: {
@@ -227,6 +530,9 @@ export default {
     },
     menuClick(index) {
       this.activeNameMenu = index
+      this.activeNameTeacher = 'first'
+      this.activeNameStudent = 'first'
+      this.activeNameCourse = 'first'
     },
     // ================course================
     handleCourseClick() {
@@ -270,15 +576,18 @@ export default {
       this.$axios.get("http://localhost:5000/getCourse").then(response => {
         this.dataCourse = []
         JSON.parse(response.data.dataCourse).forEach(item => {
-          item.edit = false;
+          item.edit = false
           this.dataCourse.push(item)
         })
       })
     },
     updateTeacher() {
       this.$axios.get("http://localhost:5000/getTeacher").then(response => {
-        console.log(response.data)
-        this.dataTeacher = JSON.parse(response.data.dataTeacher)
+        this.dataTeacher = []
+        JSON.parse(response.data.dataTeacher).forEach(item => {
+          item.edit = false
+          this.dataTeacher.push(item)
+        })
       })
     },
     // add teachers for the course
@@ -316,14 +625,16 @@ export default {
     },
     handleChangeEditStatus(index, row) {
       this.dataCourse[index].edit = true
-      this.oldCourse = JSON.stringify(row)
+      for (var key in row) {
+        this.oldStudent[key] = row[key]
+      }
     },
     handleEditCourse(index, row) {
       console.log(this.oldCourse)
       this.dataCourse[index].edit = false
       this.$axios.get("http://localhost:5000/editCourse", {
         params: {
-          oldCourse: this.oldCourse,
+          oldCourse: JSON.stringify(this.oldCourse),
           newCourse: JSON.stringify(row)
         }
       }).then(response => {
@@ -331,9 +642,11 @@ export default {
           this.updateCourse()
         } else {
           this.$message.error("There is something wrong with the system. Please try it later.")
+          this.updateCourse()
         }
       }).catch(error => {
         console.log(error)
+        this.updateCourse()
         this.$message.error("Input error.")
       })
     },
@@ -357,7 +670,214 @@ export default {
           this.$message.error("There is something wrong with the system. Please try it later.")
         }
       })
-    }
+    },
+    // ================student================
+    updateStudent() {
+      this.$axios.get("http://localhost:5000/getStudent").then(response =>{
+        this.dataStudent = []
+        JSON.parse(response.data.dataStudent).forEach(item => {
+          item.edit = false
+          this.dataStudent.push(item)
+        })
+        console.log(this.dataStudent)
+      }).catch(error =>{
+        console.log(error)
+      })
+    },
+    handleStudentClick() {
+      if (this.activeNameStudent==='second') {
+        this.updateStudent();
+      }
+    },
+    handleCreateStudent() {
+      this.newStudent.age = this.newStudent.age.toString()
+      if (this.newStudent.firstName!==null && this.newStudent.lastName!==null) {
+        this.newStudent.name = this.newStudent.firstName + " " + this.newStudent.lastName
+      } else {
+        this.newStudent.name = null
+      }
+      delete this.newStudent.firstName
+      delete this.newStudent.lastName
+      this.$axios.get("http://localhost:5000/createStudent", {
+        params: {
+          newStudent: this.newStudent
+        }
+      }).then(response => {
+        if (response.data.status==='success') {
+          this.$message({
+            message: "Successfully create a student.",
+            type: "success"
+          })
+          this.handleClearStudent();
+        } else if (response.data.status==='fail') {
+          this.$message.error("Student number "+ this.newStudent.no + " exists.")
+        }
+      }).catch(error => {
+        console.log(error)
+      })
+    },
+    handleClearStudent() {
+      this.newStudent.no = null
+      this.newStudent.name = null
+      this.newStudent.firstName = null
+      this.newStudent.lastName = null
+      this.newStudent.gender = "male"
+      this.newStudent.age = "18"
+      this.newStudent.department = null
+      this.newStudent.username = null
+      this.newStudent.password = null
+    },
+    handleChangeEditStatusStudent(index, row) {
+      this.dataStudent[index].edit = true
+      for (var key in row) {
+        this.oldStudent[key] = row[key]
+      }
+      this.oldStudent.age = this.oldStudent.age.toString()
+      delete this.oldStudent.edit
+    },
+    handleEditStudent(index, row) {
+      this.dataStudent[index].edit = false
+      this.editStudent = {}
+      row.age = row.age.toString()
+      delete row.edit
+      for(var item in row) {
+        if (this.oldStudent[item] !== row[item]) {
+          this.editStudent[item] = row[item]
+        }
+      }
+      this.$axios.get("http://localhost:5000/editStudent", {
+        params: {
+          sNo: row.no,
+          editStudent: JSON.stringify(this.editStudent)
+        }
+      }).then(response => {
+        if (response.data.status==="success") {
+          this.updateStudent()
+        } else {
+          this.$message.error("There is something wrong with the system. Please try it later.")
+        }
+      }).catch(error => {
+        console.log(error)
+        this.$message.error("Input error.")
+      })
+    },
+    handleDeleteStudent(index, row) {
+      this.$axios.get("http://localhost:5000/deleteStudent", {
+        params: {
+          sNo: row.no
+        }
+      }).then(response => {
+        if (response.data.status === "success") {
+          this.$message({
+            message: "Delete successfully.",
+            type: "success"
+          })
+          this.updateStudent()
+        } else if (response.data.status==="fail") {
+          this.$message.error("There is something wrong with the system. Please try it later.")
+        }
+      }).catch(error => {
+        console.log(error)
+        this.$message.error("Input error.")
+      })
+    },
+    // ================teacher================
+    handleTeacherClick() {
+      if (this.activeNameTeacher==="second") {
+        this.updateTeacher()
+      }
+    },
+    handleCreateTeacher() {
+      if (this.newTeacher.firstName!==null && this.newTeacher.lastName!==null) {
+        this.newTeacher.name = this.newTeacher.firstName + " " + this.newTeacher.lastName
+      } else {
+        this.newTeacher.name = null
+      }
+      delete this.newTeacher.firstName
+      delete this.newTeacher.lastName
+      this.newTeacher.age = this.newTeacher.age.toString()
+      this.$axios.get("http://localhost:5000/createTeacher", {
+        params: {
+          newTeacher: JSON.stringify(this.newTeacher)
+        }
+      }).then(response => {
+        if (response.data.status === "success") {
+          this.$message({
+            message: "Successfully add new teacher.",
+            type: "success"
+          })
+          this.handleClearTeacher()
+        } else if (response.data.status === "fail") {
+          this.$message.error(this.newTeacher.no+"exists.")
+        }
+      }).catch(error => {
+        console.log(error)
+      })
+    },
+    handleClearTeacher() {
+      this.newTeacher.no = null
+      this.newTeacher.name = null
+      this.newTeacher.firstName = null
+      this.newTeacher.lastName = null
+      this.newTeacher.gender = "male"
+      this.newTeacher.age = 40
+      this.newTeacher.department = null
+      this.newTeacher.username = null
+      this.newTeacher.password = null
+    },
+    handleChangeEditStatusTeacher(index, row) {
+      this.dataTeacher[index].edit = true
+      for (var item in row) {
+        this.oldTeacher[item] = row[item]
+      }
+      this.oldTeacher.age = this.oldTeacher.age.toString()
+      this.editableTeacher = false
+    },
+    handleCancelEditTeacher(index, row) {
+      for (var key in this.oldTeacher) {
+        this.dataTeacher[index][key] = this.oldTeacher[key]
+      }
+      this.dataTeacher[index].edit = false
+      this.editableTeacher = true
+    },
+    handleEditTeacher(index, row) {
+      this.editTeacher = {}
+      row.age = row.age.toString()
+      for (var item in row) {
+        if (row[item] !== this.oldTeacher[item]) {
+          this.editTeacher[item] = row[item]
+        }
+      }
+      this.$axios.get("http://localhost:5000/editTeacher", {
+        params: {
+          tNo: row.no,
+          editTeacher: JSON.stringify(this.editTeacher)
+        }
+      }).then(response => {
+        if (response.data.status === "success") {
+          this.updateTeacher()
+          this.editableTeacher = true
+        } else if (response.data.status === "fail") {
+          this.$message.error("There is something wrong with the system. Please try it later.")
+        }
+      }).catch(error => {
+        console.log(error)
+      })
+    },
+    handleDeleteTeacher(index, row) {
+      this.$axios.get("http://localhost:5000/deleteTeacher", {
+        params: {
+          tNo: row.no
+        }
+      }).then(response => {
+        if (response.data.status==="fail") {
+          this.$message.error("There is something wrong with the system. Please try it later.")
+        }
+        this.updateTeacher()
+      }).catch(error =>{
+        console.log(error)
+      })
+    },
   }
 }
 </script>
@@ -393,621 +913,3 @@ export default {
   color: #fff;
 }
 </style>
-
-<!--                <Sider hide-trigger :style="{background: '#fff'}">-->
-<!--                    <Menu active-name="1" theme="light" width="auto" :open-names="['1']" @on-select="handleGrade">-->
-<!--                        <Submenu name="1">-->
-<!--                            <template slot="title">-->
-<!--                                成绩管理-->
-<!--                            </template>-->
-<!--                            <MenuItem v-for="(item,index) of dataCourse" :name="item.CNAME" >{{item.CNAME}}</MenuItem>-->
-<!--                        </Submenu>-->
-<!--                        <MenuItem name="2" @click.native="chooseDistribution()">成绩分布</MenuItem>-->
-<!--                        <Submenu name="3">-->
-<!--                            <template slot="title">-->
-<!--                                维护-->
-<!--                            </template>-->
-<!--                            <MenuItem name="3-1" @click.native="chooseCourse()">课程信息</MenuItem>-->
-<!--                            <MenuItem name="3-2" @click.native="chooseStudent()">学生信息</MenuItem>-->
-<!--                            <MenuItem name="3-3" @click.native="chooseTeacher()">教师信息</MenuItem>-->
-<!--                        </Submenu>-->
-<!--                    </Menu>-->
-<!--                    <Divider/>-->
-<!--                    <div style="text-align: center">-->
-<!--                        <Button type="primary" @click="handleLogOut()">退出</Button>-->
-<!--                    </div>-->
-<!--                </Sider>-->
-<!--                <template v-if="functions === '1'">-->
-<!--                    <Layout :style="{padding: '0 24px 24px', height: '610px'}">-->
-<!--                        <br>-->
-<!--                        <Card>-->
-<!--                            <Content :style="{padding: '24px', minHeight: '280px', maxHeight: '400px', background: '#fff'}">-->
-<!--                                <p>已完成此课程的学生：</p>-->
-<!--                                <Table border max-height="220" :columns="columnsGrade" :data="dataGrade"></Table>-->
-<!--                            </Content>-->
-<!--                        </Card>-->
-<!--                        <br>-->
-<!--                        <Card>-->
-<!--                            <Content :style="{padding: '24px', minHeight: '280px', maxHeight: '400px', background: '#fff'}">-->
-<!--                                <Form inline>-->
-<!--                                    <FormItem prop="sno">-->
-<!--                                        <Input type="text" v-model="inputGrade.SNO" placeholder="学号"/>-->
-<!--                                    </FormItem>-->
-<!--                                    <FormItem prop="grade">-->
-<!--                                        <Input type="text" v-model="inputGrade.GRADE" placeholder="成绩"/>-->
-<!--                                    </FormItem>-->
-<!--                                    <FormItem>-->
-<!--                                        <Button type="primary" :disabled="!inputGrade.SNO || !inputGrade.GRADE || !course" @click="handleSubmit()">输入成绩</Button>-->
-<!--                                    </FormItem>-->
-<!--                                </Form>-->
-<!--                                <p>选修此课程的学生：</p>-->
-<!--                                <Table border max-height="220" :columns="columnsSelected" :data="dataSelected"></Table>-->
-<!--                            </Content>-->
-<!--                        </Card>-->
-<!--                    </Layout>-->
-<!--                </template>-->
-<!--                <template v-else-if="functions === '2'">-->
-<!--                    <Layout :style="{padding: '24px 24px 24px'}">-->
-<!--                        <Card>-->
-<!--                            <div style="height: 550px">-->
-<!--                                <div style="text-align: center">-->
-<!--                                    <h1>成绩分布</h1>-->
-<!--                                    <img src="./grade.png" alt="成绩分布"/>-->
-<!--                                </div>-->
-<!--                            </div>-->
-<!--                        </Card>-->
-<!--                    </Layout>-->
-<!--                </template>-->
-<!--                <template v-else-if="functions ==='3-1'">-->
-<!--                    <Layout :style="{padding: '0px 24px 24px', height: '610px'}">-->
-<!--                        <br>-->
-<!--                        <Form inline>-->
-<!--                            <FormItem prop="CNO">-->
-<!--                                <Input type="text" v-model="newCourse.CNO" placeholder="课程号"/>-->
-<!--                            </FormItem>-->
-<!--                            <FormItem prop="CNAME">-->
-<!--                                <Input type="text" v-model="newCourse.CNAME" placeholder="课程名"/>-->
-<!--                            </FormItem>-->
-<!--                            <FormItem prop="CREDIT">-->
-<!--                                <Input type="text" v-model="newCourse.CREDIT" placeholder="学分"/>-->
-<!--                            </FormItem>-->
-<!--                            <FormItem prop="CDEPT">-->
-<!--                                <Input type="text" v-model="newCourse.CDEPT" placeholder="开课系"/>-->
-<!--                            </FormItem>-->
-<!--                            <FormItem>-->
-<!--                                <Button type="primary" :disabled="!newCourse.CNO" @click="handleCourseNew()">新增</Button>-->
-<!--                            </FormItem>-->
-<!--                        </Form>-->
-<!--                        <Row style="padding:2px" :gutter=50>-->
-<!--                            <Col span="11">-->
-<!--                                <Card>-->
-<!--                                    <Content :style="{padding: '2px', minHeight: '280px', maxHeight: '600px', background: '#fff'}">-->
-<!--                                        <div>-->
-<!--                                            <p style="display: inline">记录总数：{{dataCourse.length}}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</p>-->
-<!--                                            <Button style="display: inline" type="primary" @click="handleCourseDelete()">删除</Button>-->
-<!--                                        </div>-->
-<!--                                        <br>-->
-<!--                                        <Table border size="small" max-height="560" ref="selection" :columns="columnsCourse" :data="dataCourse" @on-selection-change="controlCourse"></Table>-->
-<!--                                    </Content>-->
-<!--                                </Card>-->
-<!--                            </Col>-->
-<!--                            <Col span="11">-->
-<!--                                <Card>-->
-<!--                                    <Content :style="{padding: '2px', minHeight: '280px', maxHeight: '600px', background: '#fff'}">-->
-<!--                                        <div>-->
-<!--                                            <p>记录总数：{{dataTeacher.length}}</p>-->
-<!--                                            <Table border size="small" max-height="580" ref="selection" :columns="columnsTeacher" :data="dataTeacher" @on-selection-change="controlTeacher"></Table>-->
-<!--                                        </div>-->
-<!--                                    </Content>-->
-<!--                                </Card>-->
-<!--                            </Col>-->
-<!--                        </Row>-->
-<!--                    </Layout>-->
-<!--                </template>-->
-<!--                <template v-else-if="functions === '3-2'">-->
-<!--                    <Layout :style="{padding: '0px 24px 24px', height: '610px'}">-->
-<!--                        <br>-->
-<!--                        <Form inline>-->
-<!--                            <FormItem prop="SNO">-->
-<!--                                <Input type="text" v-model="newStudent.SNO" placeholder="学号"/>-->
-<!--                            </FormItem>-->
-<!--                            <FormItem prop="SNAME">-->
-<!--                                <Input type="text" v-model="newStudent.SNAME" placeholder="姓名"/>-->
-<!--                            </FormItem>-->
-<!--                            <FormItem prop="SEX">-->
-<!--                                <Input type="text" v-model="newStudent.SEX" placeholder="性别"/>-->
-<!--                            </FormItem>-->
-<!--                            <FormItem prop="AGE">-->
-<!--                                <Input type="text" v-model="newStudent.AGE" placeholder="年龄"/>-->
-<!--                            </FormItem>-->
-<!--                            <FormItem prop="SDEPT">-->
-<!--                                <Input type="text" v-model="newStudent.SDEPT" placeholder="所在系"/>-->
-<!--                            </FormItem>-->
-<!--                            <FormItem prop="LOGINNO">-->
-<!--                                <Input type="text" v-model="newStudent.LOGINNO" placeholder="登录名"/>-->
-<!--                            </FormItem>-->
-<!--                            <FormItem prop="LOGINPASS">-->
-<!--                                <Input type="text" v-model="newStudent.LOGINPASS" placeholder="密码"/>-->
-<!--                            </FormItem>-->
-<!--                            <FormItem>-->
-<!--                                <Button type="primary" :disabled="!newStudent.SNO" @click="handleStudentNew()">新增</Button>-->
-<!--                            </FormItem>-->
-<!--                        </Form>-->
-<!--                        <Card>-->
-<!--                            <div style="height: 420px">-->
-<!--                                <div>-->
-<!--                                    <p style="display: inline">记录总数：{{dataStudent.length}}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</p>-->
-<!--                                    <Button style="display: inline" type="primary" :disabled="studentSelected.length === 0" @click="handleStudentDelete()">删除</Button>-->
-<!--                                </div>-->
-<!--                                <br>-->
-<!--                                <Table border max-height="360" ref="selection" :columns="columnsStudent" :data="dataStudent" @on-selection-change="controlStudent"></Table>-->
-<!--                            </div>-->
-<!--                        </Card>-->
-<!--                    </Layout>-->
-<!--                </template>-->
-<!--                <template v-else-if="functions === '3-3'">-->
-<!--                    <Layout :style="{padding: '0px 24px 24px', height: '610px'}">-->
-<!--                        <br>-->
-<!--                        <Form inline>-->
-<!--                            <FormItem prop="TNO">-->
-<!--                                <Input type="text" v-model="newTeacher.TNO" placeholder="教师号"/>-->
-<!--                            </FormItem>-->
-<!--                            <FormItem prop="TNAME">-->
-<!--                                <Input type="text" v-model="newTeacher.TNAME" placeholder="教师名"/>-->
-<!--                            </FormItem>-->
-<!--                            <FormItem prop="TDEPT">-->
-<!--                                <Input type="text" v-model="newTeacher.TDEPT" placeholder="所在系"/>-->
-<!--                            </FormItem>-->
-<!--                            <FormItem prop="TCLASS">-->
-<!--                                <Input type="text" v-model="newTeacher.TCLASS" placeholder="所属类别"/>-->
-<!--                            </FormItem>-->
-<!--                            <FormItem prop="LOGINNO">-->
-<!--                                <Input type="text" v-model="newTeacher.LOGINNO" placeholder="登录名"/>-->
-<!--                            </FormItem>-->
-<!--                            <FormItem prop="LOGINPASS">-->
-<!--                                <Input type="text" v-model="newTeacher.LOGINPASS" placeholder="密码"/>-->
-<!--                            </FormItem>-->
-<!--                            <FormItem>-->
-<!--                                <Button type="primary" :disabled="!newTeacher.TNO" @click="handleTeacherNew()">新增</Button>-->
-<!--                            </FormItem>-->
-<!--                        </Form>-->
-<!--                        <Card>-->
-<!--                            <div style="height: 420px">-->
-<!--                                <div>-->
-<!--                                    <p style="display: inline">记录总数：{{dataTeacher.length}}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</p>-->
-<!--                                    <Button style="display: inline" type="primary" :disabled="teacherSelected.length === 0" @click="handleTeacherDelete()">删除</Button>-->
-<!--                                </div>-->
-<!--                                <br>-->
-<!--                                <Table border max-height="360" ref="selection" :columns="columnsTeacherBig" :data="dataTeacher" @on-selection-change="controlTeacher"></Table>-->
-<!--                            </div>-->
-<!--                        </Card>-->
-<!--                    </Layout>-->
-<!--                </template>-->
-<!--            </Layout>-->
-<!--        </Layout>-->
-<!--    </div>-->
-<!--</template>-->
-<!--<script>-->
-<!--export default {-->
-<!--    data () {-->
-<!--        return {-->
-<!--            functions: '1',-->
-<!--            course: '',-->
-<!--            dataCourse: this.$route.params.courseInfo,-->
-<!--            columnsGrade: [-->
-<!--                {-->
-<!--                    title: '学号',-->
-<!--                    key: 'SNO'-->
-<!--                },-->
-<!--                {-->
-<!--                    title: '成绩',-->
-<!--                    key: 'GRADE'-->
-<!--                },-->
-<!--                {-->
-<!--                    title: '绩点',-->
-<!--                    key: 'POINT'-->
-<!--                }-->
-<!--            ],-->
-<!--            dataGrade: [],-->
-<!--            columnsSelected: [-->
-<!--                {-->
-<!--                    title: '学号',-->
-<!--                    key: 'SNO'-->
-<!--                },-->
-<!--                {-->
-<!--                    title: '姓名',-->
-<!--                    key: 'SNAME'-->
-<!--                }-->
-<!--            ],-->
-<!--            dataSelected: [],-->
-<!--            inputGrade: {-->
-<!--                SNO: '',-->
-<!--                GRADE: ''-->
-<!--            },-->
-<!--            columnsCourse: [-->
-<!--                {-->
-<!--                    type: 'selection',-->
-<!--                    width: 55,-->
-<!--                    align: 'center'-->
-<!--                },-->
-<!--                {-->
-<!--                    title: '课程号',-->
-<!--                    key: 'CNO',-->
-<!--                    width: 70-->
-<!--                },-->
-<!--                {-->
-<!--                    title: '课程名',-->
-<!--                    key: 'CNAME',-->
-<!--                    width: 110-->
-<!--                },-->
-<!--                {-->
-<!--                    title: '学分',-->
-<!--                    key: 'CREDIT',-->
-<!--                    width: 55-->
-<!--                },-->
-<!--                {-->
-<!--                    title: '开课系',-->
-<!--                    key: 'CDEPT',-->
-<!--                    width: 100-->
-<!--                },-->
-<!--                {-->
-<!--                    title: '开课教师号',-->
-<!--                    key: 'TNO',-->
-<!--                    width: 80-->
-<!--                }-->
-<!--            ],-->
-<!--            columnsTeacher: [-->
-<!--                {-->
-<!--                    type: 'selection',-->
-<!--                    width: 55,-->
-<!--                    align: 'center'-->
-<!--                },-->
-<!--                {-->
-<!--                    title: '教师号',-->
-<!--                    key: 'TNO',-->
-<!--                    width: 80-->
-<!--                },-->
-<!--                {-->
-<!--                    title: '教师名',-->
-<!--                    key: 'TNAME',-->
-<!--                    width: 100-->
-<!--                },-->
-<!--                {-->
-<!--                    title: '所在系',-->
-<!--                    key: 'TDEPT',-->
-<!--                    width: 135-->
-<!--                },-->
-<!--                {-->
-<!--                    title: '所属类别',-->
-<!--                    key: 'TCLASS',-->
-<!--                    width: 100-->
-<!--                }-->
-<!--            ],-->
-<!--            dataTeacher: this.$route.params.teacherInfo,-->
-<!--            newCourse: {-->
-<!--                CNO: '',-->
-<!--                CNAME: '',-->
-<!--                CREDIT: '',-->
-<!--                CDEPT: '',-->
-<!--                TNO: ''-->
-<!--            },-->
-<!--            courseSelected: '',-->
-<!--            teacherSelected: [],-->
-<!--            newTeacher: {-->
-<!--                TNO: '',-->
-<!--                TNAME: '',-->
-<!--                TDEPT: '',-->
-<!--                TCLASS: '',-->
-<!--                LOGINNO: '',-->
-<!--                LOGINPASS: ''-->
-<!--            },-->
-<!--            columnsTeacherBig: [-->
-<!--                {-->
-<!--                    type: 'selection',-->
-<!--                    width: 55,-->
-<!--                    align: 'center'-->
-<!--                },-->
-<!--                {-->
-<!--                    title: '教师号',-->
-<!--                    key: 'TNO',-->
-<!--                },-->
-<!--                {-->
-<!--                    title: '教师名',-->
-<!--                    key: 'TNAME',-->
-<!--                },-->
-<!--                {-->
-<!--                    title: '所在系',-->
-<!--                    key: 'TDEPT',-->
-<!--                },-->
-<!--                {-->
-<!--                    title: '所属类别',-->
-<!--                    key: 'TCLASS',-->
-<!--                },-->
-<!--                {-->
-<!--                    title: '登录名',-->
-<!--                    key: 'LOGINNO'-->
-<!--                },-->
-<!--                {-->
-<!--                    title: '密码',-->
-<!--                    key: 'LOGINPASS'-->
-<!--                }-->
-<!--            ],-->
-<!--            columnsStudent: [-->
-<!--                {-->
-<!--                    type: 'selection',-->
-<!--                    width: 55,-->
-<!--                    align: 'center'-->
-<!--                },-->
-<!--                {-->
-<!--                    title: '学号',-->
-<!--                    key: 'SNO',-->
-
-<!--                },-->
-<!--                {-->
-<!--                    title: '姓名',-->
-<!--                    key: 'SNAME'-->
-<!--                },-->
-<!--                {-->
-<!--                    title: '性别',-->
-<!--                    key: 'SEX'-->
-<!--                },-->
-<!--                {-->
-<!--                    title: '年龄',-->
-<!--                    key: 'AGE'-->
-<!--                },-->
-<!--                {-->
-<!--                    title: '所在系',-->
-<!--                    key: 'SDEPT'-->
-<!--                },-->
-<!--                {-->
-<!--                    title: '登录名',-->
-<!--                    key: 'LOGINNO'-->
-<!--                },-->
-<!--                {-->
-<!--                    title: '密码',-->
-<!--                    key: 'LOGINPASS'-->
-<!--                }-->
-<!--            ],-->
-<!--            dataStudent: this.$route.params.studentInfo,-->
-<!--            studentSelected: [],-->
-<!--            newStudent: {-->
-<!--                SNO: '',-->
-<!--                SNAME: '',-->
-<!--                SEX: '',-->
-<!--                AGE: '',-->
-<!--                SDEPT: '',-->
-<!--                LOGINNO: '',-->
-<!--                LOGINPASS: ''-->
-<!--            }-->
-<!--        }-->
-<!--    },-->
-<!--    methods: {-->
-<!--        chooseCourse () {-->
-<!--            this.functions = '3-1'-->
-<!--            this.teacherSelected = []-->
-<!--            // this.$axios.post('http://localhost:5000/api/getcourse', {-->
-<!--            // }).then(response => {-->
-<!--            //     this.dataCourse = response.data.courseInfo-->
-<!--            //     console.log(response)-->
-<!--            // })-->
-<!--        },-->
-<!--        chooseStudent () {-->
-<!--            this.functions = '3-2'-->
-<!--        },-->
-<!--        chooseTeacher () {-->
-<!--            this.functions = '3-3'-->
-<!--        },-->
-<!--        chooseDistribution () {-->
-<!--            this.functions = '2'-->
-<!--        },-->
-<!--        handleGrade (name) {-->
-<!--            console.log(name)-->
-<!--            var status = false-->
-<!--            for (var i=0;i<this.dataCourse.length;i++) {-->
-<!--                if (this.dataCourse[i].CNAME === name) {-->
-<!--                    status = true-->
-<!--                    break-->
-<!--                }-->
-<!--            }-->
-<!--            if (status) {-->
-<!--                this.functions = '1'-->
-<!--                this.course = name-->
-<!--                this.inputGrade.SNO = ''-->
-<!--                this.inputGrade.GRADE = ''-->
-<!--                this.$axios.post('http://localhost:5000/api/managegrade', {-->
-<!--                    CNAME: this.course-->
-<!--                }).then(response => {-->
-<!--                    console.log(response)-->
-<!--                    this.dataGrade = response.data.gradeInfo-->
-<!--                    this.dataSelected = response.data.selectInfo-->
-<!--                }).catch(error => {-->
-<!--                    console.log(error)-->
-<!--                })-->
-<!--            }-->
-
-<!--        },-->
-<!--        handleSubmit () {-->
-<!--            this.$axios.post('http://localhost:5000/api/inputgrade', {-->
-<!--                SNO: this.inputGrade.SNO,-->
-<!--                GRADE: this.inputGrade.GRADE,-->
-<!--                CNAME: this.course-->
-<!--            }).then(response => {-->
-<!--                console.log(response)-->
-<!--                if (response.data.status === 'success') {-->
-<!--                    this.$Message.success('输入成功！')-->
-<!--                    this.dataGrade = response.data.gradeInfo-->
-<!--                    this.dataSelected = response.data.selectInfo-->
-<!--                    this.inputGrade.SNO = ''-->
-<!--                    this.inputGrade.GRADE = ''-->
-<!--                } else if (response.data.status === 'grade_fail') {-->
-<!--                    this.$Message.error('成绩输入错误！')-->
-<!--                } else if (response.data.status === 'sno_fail') {-->
-<!--                    this.$Message.error("学号输入错误！")-->
-<!--                }-->
-
-<!--            })-->
-<!--        },-->
-<!--        controlCourse (selection) {-->
-<!--            this.courseSelected = selection-->
-<!--            console.log(this.courseSelected)-->
-<!--        },-->
-<!--        controlTeacher (selection) {-->
-<!--            this.teacherSelected = selection-->
-<!--            console.log(this.teacherSelected)-->
-<!--        },-->
-<!--        handleCourseNew () {-->
-<!--            if (this.teacherSelected.length > 1 || this.teacherSelected.length === 0) {-->
-<!--                this.$Message.error("请选择一位老师。")-->
-<!--            } else if (this.teacherSelected[0].TNO === 'T0') {-->
-<!--                this.$Message.error("请勿选择管理员。")-->
-<!--            } else {-->
-<!--                this.$axios.post('http://localhost:5000/api/coursenew', {-->
-<!--                    course: this.newCourse,-->
-<!--                    teacher: this.teacherSelected[0]-->
-<!--                }).then(response => {-->
-<!--                    if (response.data.status === 'success') {-->
-<!--                        this.$Message.success("添加成功。")-->
-<!--                        this.newCourse = {-->
-<!--                            CNO: '',-->
-<!--                            CNAME: '',-->
-<!--                            CREDIT: '',-->
-<!--                            CDEPT: '',-->
-<!--                            TNO: ''-->
-<!--                        }-->
-<!--                        this.dataCourse = response.data.courseInfo-->
-<!--                    } else {-->
-<!--                        this.$Message.error("课程号已存在。")-->
-<!--                    }-->
-<!--                    console.log(response)-->
-<!--                })-->
-<!--            }-->
-<!--        },-->
-<!--        handleCourseDelete () {-->
-<!--            if (this.courseSelected.length === 0) {-->
-<!--                this.$Message.error("请选择至少一门课程。")-->
-<!--            } else {-->
-<!--                this.$axios.post('http://localhost:5000/api/deletecourse', {-->
-<!--                    course: this.courseSelected-->
-<!--                }).then(response => {-->
-<!--                    this.dataCourse = response.data.courseInfo-->
-<!--                    this.$Message.success('删除成功。')-->
-<!--                    console.log(response)-->
-<!--                })-->
-<!--            }-->
-<!--        },-->
-<!--        handleTeacherNew () {-->
-<!--            console.log(this.newTeacher)-->
-<!--            this.$axios.post('http://localhost:5000/api/newteacher', {-->
-<!--                teacher: this.newTeacher-->
-<!--            }).then(response => {-->
-<!--                if (response.data.status === 'success') {-->
-<!--                    this.$Message.success('添加成功。')-->
-<!--                    this.dataTeacher = response.data.teacherInfo-->
-<!--                    this.newTeacher = {-->
-<!--                        TNO: '',-->
-<!--                        TNAME: '',-->
-<!--                        TDEPT: '',-->
-<!--                        TCLASS: '',-->
-<!--                        LOGINNO: '',-->
-<!--                        LOGINPASS: ''-->
-<!--                    }-->
-<!--                } else {-->
-<!--                    this.$Message.error('教师号已存在。')-->
-<!--                }-->
-<!--                console.log(response)-->
-<!--            })-->
-<!--        },-->
-<!--        handleTeacherDelete () {-->
-<!--            this.$axios.post('http://localhost:5000/api/deleteteacher', {-->
-<!--                teacher: this.teacherSelected-->
-<!--            }).then(response => {-->
-<!--                console.log(response)-->
-<!--                if (response.data.exist.length > 0) {-->
-<!--                    this.dataTeacher = response.data.teacherInfo-->
-<!--                    var t = response.data.exist[0]-->
-<!--                    for (var i=1;i<response.data.exist.length;i++) {-->
-<!--                        t = t + ', ' + response.data.exist[i]-->
-<!--                    }-->
-<!--                    this.$Message.error('无法删除教师' + t + '。')-->
-<!--                } else {-->
-<!--                    this.$Message.success('删除成功。')-->
-<!--                    this.dataTeacher = response.data.teacherInfo-->
-<!--                }-->
-<!--            })-->
-<!--        },-->
-<!--        handleStudentNew () {-->
-<!--            this.$axios.post('http://localhost:5000/api/newstudent', {-->
-<!--                student: this.newStudent-->
-<!--            }).then(response => {-->
-<!--                if (response.data.status === 'success') {-->
-<!--                    this.$Message.success('添加成功。')-->
-<!--                    this.dataStudent = response.data.studentInfo-->
-<!--                    this.newStudent = {-->
-<!--                        SNO: '',-->
-<!--                        SNAME: '',-->
-<!--                        SEX: '',-->
-<!--                        AGE: '',-->
-<!--                        SDEPT: '',-->
-<!--                        LOGINNO: '',-->
-<!--                        LOGINPASS: ''-->
-<!--                    }-->
-<!--                } else {-->
-<!--                    this.$Message.error('学号已存在。')-->
-<!--                }-->
-<!--                console.log(response)-->
-<!--            })-->
-<!--        },-->
-<!--        controlStudent (selection) {-->
-<!--            this.studentSelected = selection-->
-<!--            console.log(this.studentSelected)-->
-<!--        },-->
-<!--        handleStudentDelete () {-->
-<!--            this.$axios.post('http://localhost:5000/api/deletestudent', {-->
-<!--                student: this.studentSelected-->
-<!--            }).then(response => {-->
-<!--                console.log(response)-->
-<!--                if (response.data.exist.length > 0) {-->
-<!--                    this.dataStudent = response.data.studentInfo-->
-<!--                    var t = response.data.exist[0]-->
-<!--                    for (var i=1;i<response.data.exist.length;i++) {-->
-<!--                        t = t + ', ' + response.data.exist[i]-->
-<!--                    }-->
-<!--                    this.$Message.error('无法删除学生' + t + '。')-->
-<!--                } else {-->
-<!--                    this.$Message.success('删除成功。')-->
-<!--                    this.dataStudent = response.data.studentInfo-->
-<!--                }-->
-<!--            })-->
-<!--        },-->
-<!--        handleLogOut () {-->
-<!--            this.$router.push({-->
-<!--                name: 'App'-->
-<!--            })-->
-<!--        }-->
-<!--    }-->
-<!--}-->
-<!--</script>-->
-<!--<style scoped>-->
-<!--.layout{-->
-<!--    border: 1px solid #d7dde4;-->
-<!--    background: #f5f7f9;-->
-<!--    position: relative;-->
-<!--    border-radius: 4px;-->
-<!--    overflow: hidden;-->
-<!--}-->
-<!--.layout-logo{-->
-<!--    width: 100px;-->
-<!--    height: 30px;-->
-<!--    background: #5b6270;-->
-<!--    border-radius: 3px;-->
-<!--    float: left;-->
-<!--    position: relative;-->
-<!--    top: 15px;-->
-<!--    left: 20px;-->
-<!--}-->
-<!--.layout-nav{-->
-<!--    width: 420px;-->
-<!--    margin: 0 auto;-->
-<!--    margin-right: 20px;-->
-<!--}-->
-<!--</style>-->
