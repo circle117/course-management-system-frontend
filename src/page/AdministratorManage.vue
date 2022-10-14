@@ -35,21 +35,70 @@
               <i class="el-icon-notebook-1"></i>
               <span>Grade Management</span>
             </template>
+            <el-menu-item
+              v-for="(item, value) in courseNameList"
+              :index="'1-'+value"
+              :key="value"
+              @click="handleCurrentCourse">
+              {{ item }}
+            </el-menu-item>
           </el-submenu>
-          <el-submenu index="3">
+          <el-submenu index="2">
             <template slot="title">
               <i class="el-icon-info"></i>
               <span>Information Management</span>
             </template>
-            <el-menu-item index="3-1">Course Information</el-menu-item>
-            <el-menu-item index="3-2">Student Information</el-menu-item>
-            <el-menu-item index="3-3">Teacher Information</el-menu-item>
+            <el-menu-item index="2-1">Course Information</el-menu-item>
+            <el-menu-item index="2-2">Student Information</el-menu-item>
+            <el-menu-item index="2-3">Teacher Information</el-menu-item>
           </el-submenu>
         </el-menu>
       </el-aside>
       <el-main>
+        <template v-if="activeNameMenu.slice(0,1)==='1'">
+          <el-card>
+            <div>
+              <p>Students who completed the course:</p>
+              <el-table
+                :data = "completedCourseStudent"
+                empty-text="No student data."
+                border
+                height="250"
+                style="width: 100%">
+                <el-table-column prop="sNo" label="Student No"></el-table-column>
+                <el-table-column prop="grade" label="Grade"></el-table-column>
+                <el-table-column prop="point" label="Point"></el-table-column>
+              </el-table>
+            </div>
+          </el-card>
+          <br>
+          <el-card>
+            <div>
+              <el-form :inline="true" :model="inputGrade">
+                <el-form-item label="Grade">
+                  <el-input v-model="inputGrade.grade"></el-input>
+                </el-form-item>
+                <el-form-item>
+                  <el-button type="primary" @click="handleSubmitGrade">Submit</el-button>
+                </el-form-item>
+                <el-table
+                  ref="singleTable"
+                  :data = "selectedCourseStudent"
+                  empty-text="No student data."
+                  border
+                  highlight-current-row
+                  @current-change="handleStudentSelectChange"
+                  height="250"
+                  style="width: 100%">
+                  <el-table-column prop="no" label="Student No"></el-table-column>
+                  <el-table-column prop="name" label="Name"></el-table-column>
+                </el-table>
+              </el-form>
+            </div>
+          </el-card>
+        </template>
         <!-- Course Info Management -->
-        <template v-if="activeNameMenu==='3-1'">
+        <template v-if="activeNameMenu==='2-1'">
           <el-tabs v-model="activeNameCourse" @tab-click="handleCourseClick">
             <el-tab-pane label="Create Course" name="first"></el-tab-pane>
             <el-tab-pane label="Edit/Delete Course" name="second"></el-tab-pane>
@@ -187,7 +236,7 @@
           </template>
         </template>
         <!-- Student Info Management -->
-        <template v-if="activeNameMenu==='3-2'">
+        <template v-if="activeNameMenu==='2-2'">
           <el-tabs v-model="activeNameStudent" @tab-click="handleStudentClick">
             <el-tab-pane label="Create Student" name="first"></el-tab-pane>
             <el-tab-pane label="Edit/Delete Student" name="second"></el-tab-pane>
@@ -319,7 +368,7 @@
           </template>
         </template>
         <!-- Teacher Info Management -->
-        <template v-if="activeNameMenu==='3-3'">
+        <template v-if="activeNameMenu==='2-3'">
           <el-tabs v-model="activeNameTeacher" @tab-click="handleTeacherClick">
             <el-tab-pane label="Create Teacher" name="first"></el-tab-pane>
             <el-tab-pane label="Edit/Delete Teacher" name="second"></el-tab-pane>
@@ -467,11 +516,25 @@
 <script>
 export default {
   data() {
+    this.$axios.get("http://localhost:5000/getCourseNameList").then(response => {
+      this.courseNameList = JSON.parse(response.data.courseNameList)
+    }).catch(error => {
+      console.log(error)
+    })
     return {
       aNo: this.$route.params.no,
       aName: this.$route.params.name,
       // menu
       activeNameMenu: '2',
+      courseNameList: [],
+      //grade
+      currentCourse: '',
+      completedCourseStudent: [],
+      selectedCourseStudent: [],
+      inputGrade: {
+        grade: ''
+      },
+      currentStudent: null,
       // course management
       activeNameCourse: 'first',
       credit: 1,
@@ -528,11 +591,62 @@ export default {
     handleSignOut() {
       this.$router.push('/')
     },
+    handleCurrentCourse() {
+      this.currentCourse = this.courseNameList[parseInt(this.activeNameMenu.slice(2))]
+      this.getCompletedCourseStudent()
+      this.getSelectedCourseStudent()
+    },
     menuClick(index) {
       this.activeNameMenu = index
       this.activeNameTeacher = 'first'
       this.activeNameStudent = 'first'
       this.activeNameCourse = 'first'
+    },
+    // ================grade================
+    getCompletedCourseStudent() {
+      this.$axios.get("http://localhost:5000/getCompletedCourseStudent", {
+        params: {
+          cName: this.currentCourse
+        }
+      }).then(response => {
+        this.completedCourseStudent = JSON.parse(response.data.completedCourseStudent)
+      }).catch(error =>{
+        console.log(error)
+      })
+    },
+    getSelectedCourseStudent() {
+      this.$axios.get("http://localhost:5000/getSelectedCourseStudent", {
+        params: {
+          cName: this.currentCourse
+        }
+      }).then(response => {
+        this.selectedCourseStudent = JSON.parse(response.data.selectedCourseStudent)
+      }).catch(error =>{
+        console.log(error)
+      })
+    },
+    handleStudentSelectChange(val) {
+      this.currentStudent = val
+    },
+    handleSubmitGrade() {
+      this.$axios.get("http://localhost:5000/inputGrade", {
+        params: {
+          sNo: this.currentStudent.no,
+          grade: this.inputGrade.grade,
+          cName: this.currentCourse
+        }
+      }).then(response => {
+        console.log(response.data)
+        if (response.data.status === "success") {
+          this.getSelectedCourseStudent()
+          this.getCompletedCourseStudent()
+          this.inputGrade.sNo = ''
+          this.inputGrade.grade = ''
+        }
+      }).catch(error => {
+        console.log(error)
+      })
+
     },
     // ================course================
     handleCourseClick() {
