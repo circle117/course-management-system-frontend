@@ -76,15 +76,15 @@ export default {
               name: 'AdministratorManage',
               params: {
                 no: response.data.no,
-                name: response.data.name,
+                name: response.data.name
               }
             })
           } else if (this.form.type === 'teacher') {
             this.$router.push({
-              name: 'GradeManage',
+              name: 'TeacherManage',
               params: {
-                user: response.data.userInfo,
-                courseInfo: response.data.courseInfo
+                no: response.data.no,
+                name: response.data.name
               }
             })
           }
