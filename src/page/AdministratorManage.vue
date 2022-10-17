@@ -213,7 +213,7 @@
                       type="primary"
                       icon="el-icon-edit"
                       circle
-                      @click.native.prevent="handleChangeEditStatus(scope.$index, scope.row)"
+                      @click.native.prevent="handleChangeEditStatusCourse(scope.$index, scope.row)"
                       size="mini">
                     </el-button>
                     <el-button
@@ -258,7 +258,7 @@
                   <el-button
                     type="primary"
                     @click="handleCreateStudent"
-                    :disabled="!newStudent.no"
+                    :disabled="(!newStudent.no) || (!newStudent.username)"
                     style="width: 100%">Create</el-button>
                 </el-col>
                 <el-col :span="12">
@@ -292,8 +292,11 @@
                   <el-radio v-model="newStudent.gender" label="male">Male</el-radio>
                   <el-radio v-model="newStudent.gender" label="female">Female</el-radio>
                 </el-form-item>
-                <el-form-item label="Age">
-                  <el-input-number v-model="newStudent.age" :min="1"></el-input-number>
+                <el-form-item label="Birthday">
+                  <el-date-picker
+                    v-model="newStudent.birthday"
+                    value-format="yyyy-MM-dd"
+                    type="date"></el-date-picker>
                 </el-form-item>
                 <el-form-item label="Department">
                   <el-input v-model="newStudent.department"></el-input>
@@ -326,10 +329,15 @@
                     <el-input v-show="scope.row.edit" size="mini" v-model="scope.row.gender"></el-input>
                   </template>
                 </el-table-column>
-                <el-table-column prop="age" label="Age">
+                <el-table-column prop="birthday" label="Birthday">
                   <template slot-scope="scope">
-                    <span v-show="!scope.row.edit">{{scope.row.age}}</span>
-                    <el-input v-show="scope.row.edit" size="mini" v-model="scope.row.age"></el-input>
+                    <span v-show="!scope.row.edit">{{scope.row.birthday}}</span>
+                    <el-date-picker
+                      v-show="scope.row.edit"
+                      size="mini"
+                      v-model="scope.row.birthday"
+                      value-format="yyyy-MM-dd"
+                      type="date"></el-date-picker>
                   </template>
                 </el-table-column>
                 <el-table-column prop="department" label="Department">
@@ -415,12 +423,12 @@
                 </el-form-item>
                 <div>
                   <el-row :gutter="10">
-                    <el-col span="12">
+                    <el-col :span="12">
                       <el-form-item label="First Name">
                         <el-input v-model="newTeacher.firstName"></el-input>
                       </el-form-item>
                     </el-col>
-                    <el-col span="12">
+                    <el-col :span="12">
                       <el-form-item label="Last Name">
                         <el-input v-model="newTeacher.lastName"></el-input>
                       </el-form-item>
@@ -431,8 +439,11 @@
                   <el-radio v-model="newTeacher.gender" label="male">Male</el-radio>
                   <el-radio v-model="newTeacher.gender" label="female">Female</el-radio>
                 </el-form-item>
-                <el-form-item label="Age">
-                  <el-input-number v-model="newTeacher.age" :min="1"></el-input-number>
+                <el-form-item label="Birthday">
+                  <el-date-picker
+                    v-model="newTeacher.birthday"
+                    value-format="yyyy-MM-dd"
+                    type="date"></el-date-picker>
                 </el-form-item>
                 <el-form-item label="Department">
                   <el-input v-model="newTeacher.department"></el-input>
@@ -466,10 +477,15 @@
                     <el-input v-show="scope.row.edit" size="mini" v-model="scope.row.gender"></el-input>
                   </template>
                 </el-table-column>
-                <el-table-column prop="age" label="Age">
+                <el-table-column prop="birthday" label="Birthday">
                   <template slot-scope="scope">
-                    <span v-show="!scope.row.edit">{{scope.row.age}}</span>
-                    <el-input v-show="scope.row.edit" size="mini" v-model="scope.row.age"></el-input>
+                    <span v-show="!scope.row.edit">{{scope.row.birthday}}</span>
+                    <el-date-picker
+                      v-show="scope.row.edit"
+                      size="mini"
+                      v-model="scope.row.birthday"
+                      value-format="yyyy-MM-dd"
+                      type="date"></el-date-picker>
                   </template>
                 </el-table-column>
                 <el-table-column prop="department" label="Department">
@@ -576,7 +592,7 @@ export default {
         firstName: null,
         lastName: null,
         gender: "male",
-        age: '18',
+        birthday: null,
         department: null,
         username: null,
         password: null
@@ -594,7 +610,7 @@ export default {
         firstName: null,
         lastName: null,
         gender: "male",
-        age: 40,
+        birthday: null,
         department: null,
         username: null,
         password: null
@@ -767,7 +783,12 @@ export default {
       this.$refs.singleTable.setCurrentRow();
       this.$refs.multipleTableTeacher.clearSelection();
     },
-    handleChangeEditStatus(index, row) {
+    handleChangeEditStatusCourse(index, row) {
+      this.oldCourse.cCode = null
+      this.oldCourse.cName = null
+      this.oldCourse.credit = null
+      this.oldCourse.department = null
+      this.oldCourse.tNo = null
       this.dataCourse[index].edit = true
       for (var key in row) {
         this.oldCourse[key] = row[key]
@@ -779,10 +800,11 @@ export default {
       for (var key in this.oldCourse) {
         this.dataCourse[index][key] = this.oldCourse[key]
       }
-      delete this.oldCourse.edit
+      this.dataCourse[index].edit = false
       this.editableCourse = true
     },
     handleEditCourse(index, row) {
+      row.credit = row.credit.toString()
       this.editCourse = {}
       for (var key in row) {
         if (this.oldCourse[key]!==row[key]) {
@@ -799,13 +821,11 @@ export default {
           this.dataCourse[index].edit = false
           this.updateCourse()
         } else {
-          this.$message.error("There is something wrong with the system. Please try it later.")
-          this.updateCourse()
+          this.$message.error("Input error.")
         }
       }).catch(error => {
         console.log(error)
-        this.updateCourse()
-        this.$message.error("Input error.")
+        this.$message.error("There is something wrong with the system. Please try it later.")
       })
     },
     // delete course
@@ -848,7 +868,6 @@ export default {
       }
     },
     handleCreateStudent() {
-      this.newStudent.age = this.newStudent.age.toString()
       if (this.newStudent.firstName!==null && this.newStudent.lastName!==null) {
         this.newStudent.name = this.newStudent.firstName + " " + this.newStudent.lastName
       } else {
@@ -856,6 +875,7 @@ export default {
       }
       delete this.newStudent.firstName
       delete this.newStudent.lastName
+      console.log(this.newStudent)
       this.$axios.get("http://localhost:5000/createStudent", {
         params: {
           newStudent: this.newStudent
@@ -880,19 +900,23 @@ export default {
       this.newStudent.firstName = null
       this.newStudent.lastName = null
       this.newStudent.gender = "male"
-      this.newStudent.age = "18"
+      this.newStudent.birthday = null
       this.newStudent.department = null
       this.newStudent.username = null
       this.newStudent.password = null
     },
     handleChangeEditStatusStudent(index, row) {
+      this.oldStudent.no = null
+      this.oldStudent.name = null
+      this.oldStudent.gender = null
+      this.oldStudent.birthday = null
+      this.oldStudent.department = null
+      this.oldStudent.username = null
       this.editableStudent = false
       this.dataStudent[index].edit = true
       for (var key in row) {
         this.oldStudent[key] = row[key]
       }
-      this.oldStudent.age = this.oldStudent.age.toString()
-      delete this.oldStudent.edit
     },
     handleCancelEditStudent(index, row) {
       for (var key in this.oldStudent) {
@@ -902,15 +926,13 @@ export default {
       this.editableStudent = true
     },
     handleEditStudent(index, row) {
-      this.dataStudent[index].edit = false
       this.editStudent = {}
-      row.age = row.age.toString()
-      delete row.edit
       for(var item in row) {
         if (this.oldStudent[item] !== row[item]) {
           this.editStudent[item] = row[item]
         }
       }
+      console.log(this.editStudent)
       this.$axios.get("http://localhost:5000/editStudent", {
         params: {
           sNo: row.no,
@@ -918,13 +940,14 @@ export default {
         }
       }).then(response => {
         if (response.data.status==="success") {
+          this.dataStudent[index].edit = false
           this.updateStudent()
         } else {
-          this.$message.error("There is something wrong with the system. Please try it later.")
+          this.$message.error("Input error.")
         }
       }).catch(error => {
         console.log(error)
-        this.$message.error("Input error.")
+        this.$message.error("There is something wrong with the system. Please try it later.")
       })
     },
     handleDeleteStudent(index, row) {
@@ -961,7 +984,6 @@ export default {
       }
       delete this.newTeacher.firstName
       delete this.newTeacher.lastName
-      this.newTeacher.age = this.newTeacher.age.toString()
       this.$axios.get("http://localhost:5000/createTeacher", {
         params: {
           newTeacher: JSON.stringify(this.newTeacher)
@@ -974,7 +996,7 @@ export default {
           })
           this.handleClearTeacher()
         } else if (response.data.status === "fail") {
-          this.$message.error(this.newTeacher.no+"exists.")
+          this.$message.error(this.newTeacher.no+" exists.")
         }
       }).catch(error => {
         console.log(error)
@@ -986,20 +1008,26 @@ export default {
       this.newTeacher.firstName = null
       this.newTeacher.lastName = null
       this.newTeacher.gender = "male"
-      this.newTeacher.age = 40
+      this.newTeacher.birthday = null
       this.newTeacher.department = null
       this.newTeacher.username = null
       this.newTeacher.password = null
     },
     handleChangeEditStatusTeacher(index, row) {
+      this.oldTeacher.no = null
+      this.oldTeacher.name = null
+      this.oldTeacher.gender = null
+      this.oldTeacher.birthday = null
+      this.oldTeacher.department = null
+      this.oldTeacher.username = null
       this.dataTeacher[index].edit = true
       for (var item in row) {
         this.oldTeacher[item] = row[item]
       }
-      this.oldTeacher.age = this.oldTeacher.age.toString()
       this.editableTeacher = false
     },
     handleCancelEditTeacher(index, row) {
+      console.log(this.oldTeacher)
       for (var key in this.oldTeacher) {
         this.dataTeacher[index][key] = this.oldTeacher[key]
       }
@@ -1008,7 +1036,6 @@ export default {
     },
     handleEditTeacher(index, row) {
       this.editTeacher = {}
-      row.age = row.age.toString()
       for (var item in row) {
         if (row[item] !== this.oldTeacher[item]) {
           this.editTeacher[item] = row[item]
@@ -1024,7 +1051,7 @@ export default {
           this.updateTeacher()
           this.editableTeacher = true
         } else if (response.data.status === "fail") {
-          this.$message.error("There is something wrong with the system. Please try it later.")
+          this.$message.error("Input Error.")
         }
       }).catch(error => {
         console.log(error)
