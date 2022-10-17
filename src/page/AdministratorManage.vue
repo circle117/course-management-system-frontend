@@ -27,7 +27,8 @@
       <el-aside>
         <el-menu
           v-model="activeNameMenu"
-          default-active="2"
+          default-active="1"
+          :unique-opened = "true"
           width="auto"
           @select="menuClick">
           <el-submenu index="1">
@@ -81,19 +82,20 @@
                 <el-form-item>
                   <el-button type="primary" @click="handleSubmitGrade">Submit</el-button>
                 </el-form-item>
-                <el-table
-                  ref="singleTable"
-                  :data = "selectedCourseStudent"
-                  empty-text="No student data."
-                  border
-                  highlight-current-row
-                  @current-change="handleStudentSelectChange"
-                  height="250"
-                  style="width: 100%">
-                  <el-table-column prop="no" label="Student No"></el-table-column>
-                  <el-table-column prop="name" label="Name"></el-table-column>
-                </el-table>
               </el-form>
+              <p>Students who are currently taking the course</p>
+              <el-table
+                ref="singleTable"
+                :data = "selectedCourseStudent"
+                empty-text="No student data."
+                border
+                highlight-current-row
+                @current-change="handleStudentSelectChange"
+                height="250"
+                style="width: 100%">
+                <el-table-column prop="no" label="Student No"></el-table-column>
+                <el-table-column prop="name" label="Name"></el-table-column>
+              </el-table>
             </div>
           </el-card>
         </template>
@@ -220,6 +222,13 @@
                       icon="el-icon-check"
                       circle
                       @click.native.prevent="handleEditCourse(scope.$index, scope.row)"
+                      size="mini">
+                    </el-button>
+                    <el-button
+                      v-show="scope.row.edit"
+                      icon="el-icon-close"
+                      circle
+                      @click.native.prevent="handleCancelEditCourse(scope.$index, scope.row)"
                       size="mini">
                     </el-button>
                     <el-button
@@ -352,6 +361,13 @@
                       icon="el-icon-check"
                       circle
                       @click.native.prevent="handleEditStudent(scope.$index, scope.row)"
+                      size="mini">
+                    </el-button>
+                    <el-button
+                      v-show="scope.row.edit"
+                      icon="el-icon-close"
+                      circle
+                      @click.native.prevent="handleCancelEditStudent(scope.$index, scope.row)"
                       size="mini">
                     </el-button>
                     <el-button
@@ -551,6 +567,7 @@ export default {
       courseSelection: '',
       searchCourse: '',
       oldCourse: {},
+      editableCourse: true,
       // student management
       activeNameStudent: 'first',
       newStudent: {
@@ -568,6 +585,7 @@ export default {
       editStudent: {},
       dataStudent: [],
       searchStudent: '',
+      editableStudent: true,
       // teacher management
       activeNameTeacher: 'first',
       newTeacher:{
@@ -629,24 +647,29 @@ export default {
       this.currentStudent = val
     },
     handleSubmitGrade() {
-      this.$axios.get("http://localhost:5000/inputGrade", {
-        params: {
-          sNo: this.currentStudent.no,
-          grade: this.inputGrade.grade,
-          cName: this.currentCourse
-        }
-      }).then(response => {
-        console.log(response.data)
-        if (response.data.status === "success") {
-          this.getSelectedCourseStudent()
-          this.getCompletedCourseStudent()
-          this.inputGrade.sNo = ''
-          this.inputGrade.grade = ''
-        }
-      }).catch(error => {
-        console.log(error)
-      })
-
+      if (this.currentStudent==null) {
+        this.$message.error("Please select a student below.")
+      } else if (this.inputGrade.grade>=0 && this.inputGrade.grade<=100) {
+        this.$axios.get("http://localhost:5000/inputGrade", {
+          params: {
+            sNo: this.currentStudent.no,
+            grade: this.inputGrade.grade,
+            cName: this.currentCourse
+          }
+        }).then(response => {
+          console.log(response.data)
+          if (response.data.status === "success") {
+            this.getSelectedCourseStudent()
+            this.getCompletedCourseStudent()
+            this.inputGrade.sNo = ''
+            this.inputGrade.grade = ''
+          }
+        }).catch(error => {
+          console.log(error)
+        })
+      } else {
+        this.$message.error("Grade Input Error.")
+      }
     },
     // ================course================
     handleCourseClick() {
@@ -715,22 +738,29 @@ export default {
       this.courseSelection = val
     },
     handleAddTeacher() {
-      console.log(this.courseSelection.cCode)
-      console.log(this.teacherSelection)
-      this.$axios.get("http://localhost:5000/addTeacher", {
-        params: {
-          cCode: this.courseSelection.cCode,
-          teacherList: JSON.stringify(this.teacherSelection)
-        }
-      }).then(response => {
-        if (response.data.Status === "") {
-
-        }
-        this.updateCourse();
-        this.handleClearAdd();
-      }).catch( error =>{
-        console.log(error)
-      })
+      if (this.teacherSelection.length === 0) {
+        this.$message.error("Please select at least one teacher.")
+      } else {
+        this.$axios.get("http://localhost:5000/addTeacher", {
+          params: {
+            cCode: this.courseSelection.cCode,
+            teacherList: JSON.stringify(this.teacherSelection)
+          }
+        }).then(response => {
+          if (response.data.status === "fail") {
+            var failTeacherNo = JSON.parse(response.data.failTeacherNo)
+            if (failTeacherNo.length === 1) {
+              this.$message.error("Teacher " + failTeacherNo.join(", ") + " has already taught the course.")
+            } else {
+              this.$message.error("Teacher " + failTeacherNo.join(", ") + " have already taught the course.")
+            }
+          }
+          this.updateCourse();
+          this.handleClearAdd();
+        }).catch(error => {
+          console.log(error)
+        })
+      }
     },
     // edit course
     handleClearAdd() {
@@ -740,19 +770,33 @@ export default {
     handleChangeEditStatus(index, row) {
       this.dataCourse[index].edit = true
       for (var key in row) {
-        this.oldStudent[key] = row[key]
+        this.oldCourse[key] = row[key]
       }
+      this.oldCourse.credit = this.oldCourse.credit.toString()
+      this.editableCourse = false
+    },
+    handleCancelEditCourse(index, row) {
+      for (var key in this.oldCourse) {
+        this.dataCourse[index][key] = this.oldCourse[key]
+      }
+      delete this.oldCourse.edit
+      this.editableCourse = true
     },
     handleEditCourse(index, row) {
-      console.log(this.oldCourse)
-      this.dataCourse[index].edit = false
+      this.editCourse = {}
+      for (var key in row) {
+        if (this.oldCourse[key]!==row[key]) {
+          this.editCourse[key] = row[key]
+        }
+      }
       this.$axios.get("http://localhost:5000/editCourse", {
         params: {
-          oldCourse: JSON.stringify(this.oldCourse),
-          newCourse: JSON.stringify(row)
+          editCourse: this.editCourse,
+          cCode: row.cCode
         }
       }).then(response => {
-        if (response.data.Status==="success") {
+        if (response.data.Status === "success") {
+          this.dataCourse[index].edit = false
           this.updateCourse()
         } else {
           this.$message.error("There is something wrong with the system. Please try it later.")
@@ -842,12 +886,20 @@ export default {
       this.newStudent.password = null
     },
     handleChangeEditStatusStudent(index, row) {
+      this.editableStudent = false
       this.dataStudent[index].edit = true
       for (var key in row) {
         this.oldStudent[key] = row[key]
       }
       this.oldStudent.age = this.oldStudent.age.toString()
       delete this.oldStudent.edit
+    },
+    handleCancelEditStudent(index, row) {
+      for (var key in this.oldStudent) {
+        this.dataStudent[index][key] = this.oldStudent[key]
+      }
+      this.dataStudent[index].edit = false
+      this.editableStudent = true
     },
     handleEditStudent(index, row) {
       this.dataStudent[index].edit = false
