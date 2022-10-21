@@ -784,49 +784,51 @@ export default {
       this.$refs.multipleTableTeacher.clearSelection();
     },
     handleChangeEditStatusCourse(index, row) {
-      this.oldCourse.cCode = null
-      this.oldCourse.cName = null
-      this.oldCourse.credit = null
-      this.oldCourse.department = null
-      this.oldCourse.tNo = null
-      this.dataCourse[index].edit = true
+      this.oldCourse["cCode"] = null
+      this.oldCourse["cName"] = null
+      this.oldCourse["credit"] = null
+      this.oldCourse["department"] = null
+      this.oldCourse["tNo"] = null
+      this.dataCourse[index]["edit"] = true
       for (var key in row) {
         this.oldCourse[key] = row[key]
       }
-      this.oldCourse.credit = this.oldCourse.credit.toString()
       this.editableCourse = false
     },
     handleCancelEditCourse(index, row) {
       for (var key in this.oldCourse) {
         this.dataCourse[index][key] = this.oldCourse[key]
       }
-      this.dataCourse[index].edit = false
+      this.dataCourse[index]["edit"] = false
       this.editableCourse = true
     },
     handleEditCourse(index, row) {
-      row.credit = row.credit.toString()
-      this.editCourse = {}
-      for (var key in row) {
+      let flag = false;
+      for (const key in row) {
         if (this.oldCourse[key]!==row[key]) {
-          this.editCourse[key] = row[key]
+          flag = true;
+          break
         }
       }
-      this.$axios.get("http://localhost:5000/editCourse", {
-        params: {
-          editCourse: this.editCourse,
-          cCode: row.cCode
-        }
-      }).then(response => {
-        if (response.data.Status === "success") {
-          this.dataCourse[index].edit = false
-          this.updateCourse()
-        } else {
-          this.$message.error("Input error.")
-        }
-      }).catch(error => {
-        console.log(error)
-        this.$message.error("There is something wrong with the system. Please try it later.")
-      })
+      if (flag) {
+        this.$axios.get("http://localhost:5000/editCourse", {
+          params: {
+            editCourse: row
+          }
+        }).then(response => {
+          if (response.data.Status === "success") {
+            this.dataCourse[index].edit = false
+            this.updateCourse()
+          } else {
+            this.$message.error("Input error.")
+          }
+        }).catch(error => {
+          console.log(error)
+          this.$message.error("There is something wrong with the system. Please try it later.")
+        })
+      } else {
+        this.$message.error("Nothing is changed.")
+      }
     },
     // delete course
     handleDeleteCourse(index, row) {
@@ -875,7 +877,6 @@ export default {
       }
       delete this.newStudent.firstName
       delete this.newStudent.lastName
-      console.log(this.newStudent)
       this.$axios.get("http://localhost:5000/createStudent", {
         params: {
           newStudent: this.newStudent
@@ -895,25 +896,25 @@ export default {
       })
     },
     handleClearStudent() {
-      this.newStudent.no = null
-      this.newStudent.name = null
-      this.newStudent.firstName = null
-      this.newStudent.lastName = null
-      this.newStudent.gender = "male"
-      this.newStudent.birthday = null
-      this.newStudent.department = null
-      this.newStudent.username = null
-      this.newStudent.password = null
+      this.newStudent["no"] = null
+      this.newStudent["name"] = null
+      this.newStudent["firstName"] = null
+      this.newStudent["lastName"] = null
+      this.newStudent["gender"] = "male"
+      this.newStudent["birthday"] = null
+      this.newStudent["department"] = null
+      this.newStudent["username"] = null
+      this.newStudent["password"] = null
     },
     handleChangeEditStatusStudent(index, row) {
-      this.oldStudent.no = null
-      this.oldStudent.name = null
-      this.oldStudent.gender = null
-      this.oldStudent.birthday = null
-      this.oldStudent.department = null
-      this.oldStudent.username = null
+      this.oldStudent["no"] = null
+      this.oldStudent["name"] = null
+      this.oldStudent["gender"] = null
+      this.oldStudent["birthday"] = null
+      this.oldStudent["department"] = null
+      this.oldStudent["username"] = null
       this.editableStudent = false
-      this.dataStudent[index].edit = true
+      this.dataStudent[index]["edit"] = true
       for (var key in row) {
         this.oldStudent[key] = row[key]
       }
@@ -922,33 +923,36 @@ export default {
       for (var key in this.oldStudent) {
         this.dataStudent[index][key] = this.oldStudent[key]
       }
-      this.dataStudent[index].edit = false
+      this.dataStudent[index]["edit"] = false
       this.editableStudent = true
     },
     handleEditStudent(index, row) {
-      this.editStudent = {}
+      let flag = false
       for(var item in row) {
         if (this.oldStudent[item] !== row[item]) {
-          this.editStudent[item] = row[item]
+          flag = true
+          break
         }
       }
-      console.log(this.editStudent)
-      this.$axios.get("http://localhost:5000/editStudent", {
-        params: {
-          sNo: row.no,
-          editStudent: JSON.stringify(this.editStudent)
-        }
-      }).then(response => {
-        if (response.data.status==="success") {
-          this.dataStudent[index].edit = false
-          this.updateStudent()
-        } else {
-          this.$message.error("Input error.")
-        }
-      }).catch(error => {
-        console.log(error)
-        this.$message.error("There is something wrong with the system. Please try it later.")
-      })
+      if (flag) {
+        this.$axios.get("http://localhost:5000/editStudent", {
+          params: {
+            editStudent: row
+          }
+        }).then(response => {
+          if (response.data.status === "success") {
+            this.dataStudent[index]["edit"] = false
+            this.updateStudent()
+          } else {
+            this.$message.error("Input error.")
+          }
+        }).catch(error => {
+          console.log(error)
+          this.$message.error("There is something wrong with the system. Please try it later.")
+        })
+      } else {
+        this.$message.error("Nothing is changed.")
+      }
     },
     handleDeleteStudent(index, row) {
       this.$axios.get("http://localhost:5000/deleteStudent", {
@@ -1014,20 +1018,19 @@ export default {
       this.newTeacher.password = null
     },
     handleChangeEditStatusTeacher(index, row) {
-      this.oldTeacher.no = null
-      this.oldTeacher.name = null
-      this.oldTeacher.gender = null
-      this.oldTeacher.birthday = null
-      this.oldTeacher.department = null
-      this.oldTeacher.username = null
-      this.dataTeacher[index].edit = true
+      this.oldTeacher["no"] = null
+      this.oldTeacher["name"] = null
+      this.oldTeacher["gender"]= null
+      this.oldTeacher["birthday"] = null
+      this.oldTeacher["department"] = null
+      this.oldTeacher["username"] = null
+      this.dataTeacher[index]["edit"] = true
       for (var item in row) {
         this.oldTeacher[item] = row[item]
       }
       this.editableTeacher = false
     },
     handleCancelEditTeacher(index, row) {
-      console.log(this.oldTeacher)
       for (var key in this.oldTeacher) {
         this.dataTeacher[index][key] = this.oldTeacher[key]
       }
@@ -1035,27 +1038,31 @@ export default {
       this.editableTeacher = true
     },
     handleEditTeacher(index, row) {
-      this.editTeacher = {}
-      for (var item in row) {
+      let flag = false;
+      for (const item in row) {
         if (row[item] !== this.oldTeacher[item]) {
-          this.editTeacher[item] = row[item]
+          flag = true
+          break
         }
       }
-      this.$axios.get("http://localhost:5000/editTeacher", {
-        params: {
-          tNo: row.no,
-          editTeacher: JSON.stringify(this.editTeacher)
-        }
-      }).then(response => {
-        if (response.data.status === "success") {
-          this.updateTeacher()
-          this.editableTeacher = true
-        } else if (response.data.status === "fail") {
-          this.$message.error("Input Error.")
-        }
-      }).catch(error => {
-        console.log(error)
-      })
+      if (flag) {
+        this.$axios.get("http://localhost:5000/editTeacher", {
+          params: {
+            editTeacher: row
+          }
+        }).then(response => {
+          if (response.data.status === "success") {
+            this.updateTeacher()
+            this.editableTeacher = true
+          } else if (response.data.status === "fail") {
+            this.$message.error("Input Error.")
+          }
+        }).catch(error => {
+          console.log(error)
+        })
+      } else {
+        this.$message.error("Nothing is changed.")
+      }
     },
     handleDeleteTeacher(index, row) {
       this.$axios.get("http://localhost:5000/deleteTeacher", {

@@ -118,9 +118,7 @@
             <el-table-column prop="grade" label="Grade"></el-table-column>
             <el-table-column prop="point" label="Point"></el-table-column>
           </el-table>
-          <br>
           <el-divider></el-divider>
-          <br>
           <el-row>
             <el-col :span="16">
               <div>
@@ -198,7 +196,6 @@ export default {
       }).then(response => {
         this.completedCourses = JSON.parse(response.data.completedCourses)
         this.avgGrade = response.data.GPA
-        console.log(response)
       }).catch(error => {
         console.log(error)
         this.isSelect = false
@@ -208,10 +205,11 @@ export default {
       // select courses selection change
       this.selectCourse = selection
       this.button1IsAble = selection.length === 0;
+      console.log(this.selectCourse)
     },
     handleSelect () {
       // select courses
-      this.$axios.get('http://localhost:5000/selectCourse', {
+      this.$axios.get('http://localhost:5000/grade', {
         params: {
           course: JSON.stringify(this.selectCourse),
           sNo: this.sNo
@@ -226,10 +224,9 @@ export default {
         } else if (response.data.Status === "NotSignIn") {
           this.$message.error('You do not sign in. Please sign in first.')
         } else {
-          var courses = JSON.parse(response.data.Courses)
-          console.log(courses)
-          var failCCode = courses
-          for (var i = 1; i < courses.length; i++) {
+          let courses = JSON.parse(response.data.Courses)
+          let failCCode = courses[0]
+          for (let i = 1; i < courses.length; i++) {
             failCCode = failCCode + '，' + courses[i]
           }
           this.$message.error('You have already selected course ' + failCCode + '.')
