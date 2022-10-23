@@ -548,7 +548,11 @@
 <script>
 export default {
   data() {
-    this.$axios.get("http://localhost:5000/getCourseNameList").then(response => {
+    this.$axios.get("http://localhost:5000/administrator", {
+      params: {
+        action: "getAllCourseNameList"
+      }
+    }).then(response => {
       this.courseNameList = JSON.parse(response.data.courseNameList)
     }).catch(error => {
       console.log(error)
@@ -638,9 +642,10 @@ export default {
     },
     // ================grade================
     getCompletedCourseStudent() {
-      this.$axios.get("http://localhost:5000/getCompletedCourseStudent", {
+      this.$axios.get("http://localhost:5000/administrator", {
         params: {
-          cName: this.currentCourse
+          cName: this.currentCourse,
+          action: "completedCourseStudent"
         }
       }).then(response => {
         this.completedCourseStudent = JSON.parse(response.data.completedCourseStudent)
@@ -649,9 +654,10 @@ export default {
       })
     },
     getSelectedCourseStudent() {
-      this.$axios.get("http://localhost:5000/getSelectedCourseStudent", {
+      this.$axios.get("http://localhost:5000/administrator", {
         params: {
-          cName: this.currentCourse
+          cName: this.currentCourse,
+          action: "selectedCourseStudent"
         }
       }).then(response => {
         this.selectedCourseStudent = JSON.parse(response.data.selectedCourseStudent)
@@ -666,14 +672,14 @@ export default {
       if (this.currentStudent==null) {
         this.$message.error("Please select a student below.")
       } else if (this.inputGrade.grade>=0 && this.inputGrade.grade<=100) {
-        this.$axios.get("http://localhost:5000/inputGrade", {
+        this.$axios.get("http://localhost:5000/administrator", {
           params: {
             sNo: this.currentStudent.no,
             grade: this.inputGrade.grade,
-            cName: this.currentCourse
+            cName: this.currentCourse,
+            action: "submitGrade"
           }
         }).then(response => {
-          console.log(response.data)
           if (response.data.status === "success") {
             this.getSelectedCourseStudent()
             this.getCompletedCourseStudent()
@@ -696,21 +702,20 @@ export default {
     },
     // create course
     handleCreateCourse() {
-      console.log(this.credit)
       this.newCourse.credit = this.credit.toString()
-      console.log(this.newCourse)
-      this.$axios.get("http://localhost:5000/createCourse", {
+      this.$axios.get("http://localhost:5000/administrator", {
         params: {
-          newCourse: this.newCourse
+          newCourse: this.newCourse,
+          action: "createCourse"
         }
       }).then(response=>{
-        if (response.data.Status === "success") {
+        if (response.data.status === "success") {
           this.$message({
             message: "Successfully create course "+response.data.cCode+".",
             type: "success"
           })
           this.handleClearCourse()
-        } else if (response.data.Status === "fail") {
+        } else if (response.data.status === "fail") {
           this.$message.error("Course "+response.data.cCode+" exists.")
         }
       }).catch(error =>{
@@ -719,14 +724,17 @@ export default {
       })
     },
     handleClearCourse() {
-      for(var item in this.newCourse) {
-        console.log(item)
+      for(const item in this.newCourse) {
         this.newCourse[item] = null
       }
     },
     // get course list and teacher list
     updateCourse() {
-      this.$axios.get("http://localhost:5000/getCourse").then(response => {
+      this.$axios.get("http://localhost:5000/administrator", {
+        params: {
+          action: "getCourseList"
+        }
+      }).then(response => {
         this.dataCourse = []
         JSON.parse(response.data.dataCourse).forEach(item => {
           item.edit = false
@@ -735,7 +743,11 @@ export default {
       })
     },
     updateTeacher() {
-      this.$axios.get("http://localhost:5000/getTeacher").then(response => {
+      this.$axios.get("http://localhost:5000/administrator", {
+        params: {
+          action: "getTeacherList"
+        }
+      }).then(response => {
         this.dataTeacher = []
         JSON.parse(response.data.dataTeacher).forEach(item => {
           item.edit = false
@@ -757,14 +769,15 @@ export default {
       if (this.teacherSelection.length === 0) {
         this.$message.error("Please select at least one teacher.")
       } else {
-        this.$axios.get("http://localhost:5000/addTeacher", {
+        this.$axios.get("http://localhost:5000/administrator", {
           params: {
             cCode: this.courseSelection.cCode,
-            teacherList: JSON.stringify(this.teacherSelection)
+            teacherList: JSON.stringify(this.teacherSelection),
+            action: "addTeacher"
           }
         }).then(response => {
           if (response.data.status === "fail") {
-            var failTeacherNo = JSON.parse(response.data.failTeacherNo)
+            let failTeacherNo = JSON.parse(response.data.failTeacherNo)
             if (failTeacherNo.length === 1) {
               this.$message.error("Teacher " + failTeacherNo.join(", ") + " has already taught the course.")
             } else {
@@ -790,13 +803,13 @@ export default {
       this.oldCourse["department"] = null
       this.oldCourse["tNo"] = null
       this.dataCourse[index]["edit"] = true
-      for (var key in row) {
+      for (const key in row) {
         this.oldCourse[key] = row[key]
       }
       this.editableCourse = false
     },
     handleCancelEditCourse(index, row) {
-      for (var key in this.oldCourse) {
+      for (const key in this.oldCourse) {
         this.dataCourse[index][key] = this.oldCourse[key]
       }
       this.dataCourse[index]["edit"] = false
@@ -811,12 +824,13 @@ export default {
         }
       }
       if (flag) {
-        this.$axios.get("http://localhost:5000/editCourse", {
+        this.$axios.get("http://localhost:5000/administrator", {
           params: {
-            editCourse: row
+            editCourse: row,
+            action: "editCourse"
           }
         }).then(response => {
-          if (response.data.Status === "success") {
+          if (response.data.status === "success") {
             this.dataCourse[index].edit = false
             this.updateCourse()
           } else {
@@ -832,20 +846,18 @@ export default {
     },
     // delete course
     handleDeleteCourse(index, row) {
-      this.$axios.get("http://localhost:5000/deleteCourse", {
+      this.$axios.get("http://localhost:5000/administrator", {
         params: {
-          course: row
+          course: row,
+          action: "deleteCourse"
         }
       }).then( response => {
-        console.log(response)
-        if (response.data.Status === "success") {
+        if (response.data.status === "success") {
           this.$message({
             message: "Delete course successfully.",
             type: "success"
           })
-          this.$axios.get("http://localhost:5000/getCourse").then(response => {
-            this.dataCourse = JSON.parse(response.data.dataCourse)
-          })
+          this.updateCourse()
         } else {
           this.$message.error("There is something wrong with the system. Please try it later.")
         }
@@ -853,13 +865,16 @@ export default {
     },
     // ================student================
     updateStudent() {
-      this.$axios.get("http://localhost:5000/getStudent").then(response =>{
+      this.$axios.get("http://localhost:5000/administrator", {
+        params: {
+          action: "getStudentList"
+        }
+      }).then(response =>{
         this.dataStudent = []
         JSON.parse(response.data.dataStudent).forEach(item => {
           item.edit = false
           this.dataStudent.push(item)
         })
-        console.log(this.dataStudent)
       }).catch(error =>{
         console.log(error)
       })
@@ -877,9 +892,10 @@ export default {
       }
       delete this.newStudent.firstName
       delete this.newStudent.lastName
-      this.$axios.get("http://localhost:5000/createStudent", {
+      this.$axios.get("http://localhost:5000/administrator", {
         params: {
-          newStudent: this.newStudent
+          newStudent: this.newStudent,
+          action: "createStudent"
         }
       }).then(response => {
         if (response.data.status==='success') {
@@ -920,7 +936,7 @@ export default {
       }
     },
     handleCancelEditStudent(index, row) {
-      for (var key in this.oldStudent) {
+      for (const key in this.oldStudent) {
         this.dataStudent[index][key] = this.oldStudent[key]
       }
       this.dataStudent[index]["edit"] = false
@@ -928,16 +944,17 @@ export default {
     },
     handleEditStudent(index, row) {
       let flag = false
-      for(var item in row) {
+      for(const item in row) {
         if (this.oldStudent[item] !== row[item]) {
           flag = true
           break
         }
       }
       if (flag) {
-        this.$axios.get("http://localhost:5000/editStudent", {
+        this.$axios.get("http://localhost:5000/administrator", {
           params: {
-            editStudent: row
+            editStudent: row,
+            action: "editStudent"
           }
         }).then(response => {
           if (response.data.status === "success") {
@@ -955,9 +972,10 @@ export default {
       }
     },
     handleDeleteStudent(index, row) {
-      this.$axios.get("http://localhost:5000/deleteStudent", {
+      this.$axios.get("http://localhost:5000/administrator", {
         params: {
-          sNo: row.no
+          sNo: row.no,
+          action: "deleteStudent"
         }
       }).then(response => {
         if (response.data.status === "success") {
@@ -988,9 +1006,10 @@ export default {
       }
       delete this.newTeacher.firstName
       delete this.newTeacher.lastName
-      this.$axios.get("http://localhost:5000/createTeacher", {
+      this.$axios.get("http://localhost:5000/administrator", {
         params: {
-          newTeacher: JSON.stringify(this.newTeacher)
+          newTeacher: JSON.stringify(this.newTeacher),
+          action: "createTeacher"
         }
       }).then(response => {
         if (response.data.status === "success") {
@@ -1025,13 +1044,13 @@ export default {
       this.oldTeacher["department"] = null
       this.oldTeacher["username"] = null
       this.dataTeacher[index]["edit"] = true
-      for (var item in row) {
+      for (const item in row) {
         this.oldTeacher[item] = row[item]
       }
       this.editableTeacher = false
     },
     handleCancelEditTeacher(index, row) {
-      for (var key in this.oldTeacher) {
+      for (const key in this.oldTeacher) {
         this.dataTeacher[index][key] = this.oldTeacher[key]
       }
       this.dataTeacher[index].edit = false
@@ -1046,9 +1065,10 @@ export default {
         }
       }
       if (flag) {
-        this.$axios.get("http://localhost:5000/editTeacher", {
+        this.$axios.get("http://localhost:5000/administrator", {
           params: {
-            editTeacher: row
+            editTeacher: row,
+            action: "editTeacher"
           }
         }).then(response => {
           if (response.data.status === "success") {
@@ -1065,9 +1085,10 @@ export default {
       }
     },
     handleDeleteTeacher(index, row) {
-      this.$axios.get("http://localhost:5000/deleteTeacher", {
+      this.$axios.get("http://localhost:5000/administrator", {
         params: {
-          tNo: row.no
+          tNo: row.no,
+          action: "deleteTeacher"
         }
       }).then(response => {
         if (response.data.status==="fail") {

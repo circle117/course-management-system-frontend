@@ -47,16 +47,15 @@ export default {
   },
   methods: {
     handleSubmit () {
-      this.$axios.get('http://localhost:5000/signIn', {
+      console.log('http://localhost:5000/'+this.form.type)
+      this.$axios.get('http://localhost:5000/'+this.form.type, {
         params: {
+          action: "signIn",
           username: this.form.username,
-          password: this.form.password,
-          type: this.form.type
+          password: this.form.password
         }
       }).then(response => {
-        if (response.data.signInStatus === 'success') {
-          console.log(response.data.signInStatus)
-          // delete response.data.logInStatus
+        if (response.data.status === 'success') {
           this.$message({
             message: 'Sign in successfully!',
             type: 'success'

@@ -189,9 +189,10 @@ export default {
     },
     showCompletedCourses () {
       this.isSelect = false
-      this.$axios.get('http://localhost:5000/completedCourses', {
+      this.$axios.get('http://localhost:5000/student', {
         params: {
-          sNo: this.sNo
+          sNo: this.sNo,
+          action: "completedCourse"
         }
       }).then(response => {
         this.completedCourses = JSON.parse(response.data.completedCourses)
@@ -205,24 +206,30 @@ export default {
       // select courses selection change
       this.selectCourse = selection
       this.button1IsAble = selection.length === 0;
-      console.log(this.selectCourse)
     },
     handleSelect () {
       // select courses
-      this.$axios.get('http://localhost:5000/grade', {
+      this.$axios.get('http://localhost:5000/student', {
         params: {
           course: JSON.stringify(this.selectCourse),
-          sNo: this.sNo
+          sNo: this.sNo,
+          action: "selectCourse"
         }
       }).then(response => {
-        console.log(response)
         if (response.data.Status === "Success") {
-          this.$message({
-            message: 'Select course(s) successfully.',
-            type: 'success'
-          })
+          if (this.selectCourse.length===1) {
+            this.$message({
+              message: 'Select the course successfully.',
+              type: 'success'
+            })
+          } else {
+            this.$message({
+              message: 'Select the courses successfully.',
+              type: 'success'
+            })
+          }
         } else if (response.data.Status === "NotSignIn") {
-          this.$message.error('You do not sign in. Please sign in first.')
+          this.$message.error('You need to sign in first.')
         } else {
           let courses = JSON.parse(response.data.Courses)
           let failCCode = courses[0]
@@ -238,9 +245,10 @@ export default {
     },
     updateSelected () {
       // update selected courses
-      this.$axios.get('http://localhost:5000/updateSelected', {
+      this.$axios.get('http://localhost:5000/student', {
         params: {
-          sNo: this.sNo
+          sNo: this.sNo,
+          action: "selectedCourse"
         }
       }).then(response => {
         this.selectedCourses = JSON.parse(response.data.selectedCourses)
@@ -255,10 +263,11 @@ export default {
     },
     handleDrop () {
       // 退课
-      this.$axios.get('http://localhost:5000/dropCourse', {
+      this.$axios.get('http://localhost:5000/student', {
         params: {
           dropCourse: JSON.stringify(this.dropCourse),
-          sNo: this.sNo
+          sNo: this.sNo,
+          action: "dropCourse"
         }
       }).then(response => {
         this.$message({
@@ -273,12 +282,14 @@ export default {
     },
     handleSearch () {
       // 搜索课程
-      this.$axios.get('http://localhost:5000/searchCourse', {
+      this.$axios.get('http://localhost:5000/student', {
         params: {
-          courseCode: this.inputCourseCode
+          courseCode: this.inputCourseCode,
+          action: "searchCourse"
         }
       }).then(response => {
-        this.dataCourse = response.data.dataCourse
+        console.log(response.data.dataCourse)
+        this.dataCourse = JSON.parse(response.data.dataCourse)
       }).catch(error => {
         console.log(error)
       })

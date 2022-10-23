@@ -96,9 +96,10 @@
 export default {
   data(){
     if (this.$route.params.no !== null) {
-      this.$axios.get("http://localhost:5000/getCourseNameListForTeacher", {
+      this.$axios.get("http://localhost:5000/teacher", {
         params: {
-          no: this.$route.params.no
+          no: this.$route.params.no,
+          action: "courseNameList"
         }
       }).then(response =>{
         this.courseNameList = JSON.parse(response.data.courseNameList)
@@ -131,10 +132,11 @@ export default {
       this.getSelectedCourseStudent()
     },
     getCompletedCourseStudent() {
-      this.$axios.get("http://localhost:5000/getCompletedCourseStudentForTeacher", {
+      this.$axios.get("http://localhost:5000/teacher", {
         params: {
           cName: this.currentCourse,
-          tNo: this.no
+          tNo: this.no,
+          action: "completedCourseStudent"
         }
       }).then(response => {
         this.completedCourseStudent = JSON.parse(response.data.completedCourseStudent)
@@ -143,10 +145,11 @@ export default {
       })
     },
     getSelectedCourseStudent() {
-      this.$axios.get("http://localhost:5000/getSelectedCourseStudentForTeacher", {
+      this.$axios.get("http://localhost:5000/teacher", {
         params: {
           cName: this.currentCourse,
-          tNo: this.no
+          tNo: this.no,
+          action: "selectedCourseStudent"
         }
       }).then(response => {
         this.selectedCourseStudent = JSON.parse(response.data.selectedCourseStudent)
@@ -158,11 +161,12 @@ export default {
       if (this.currentStudent==null) {
         this.$message.error("Please select a student below.")
       } else if (this.inputGrade.grade>=0 && this.inputGrade.grade<=100) {
-        this.$axios.get("http://localhost:5000/inputGrade", {
+        this.$axios.get("http://localhost:5000/teacher", {
           params: {
             sNo: this.currentStudent.no,
             grade: this.inputGrade.grade,
-            cName: this.currentCourse
+            cName: this.currentCourse,
+            action: "submitGrade"
           }
         }).then(response => {
           console.log(response.data)
@@ -186,13 +190,11 @@ export default {
 }
 </script>
 
-<style scoped>
+<style scope>
 .el-header {
   background-color: #277BC0;
   color: #fff;
-  /*text-align: center;*/
   line-height: 60px;
-  /*font-size: 20px;*/
 }
 .el-aside {
   background-color: #FFF4CF;
@@ -203,7 +205,6 @@ export default {
 .el-main {
   background-color: #fff;
   color: #333;
-  /*text-align: center;*/
 }
 .el-menu {
   background-color: #FFF4CF;
