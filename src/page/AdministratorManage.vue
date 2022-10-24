@@ -858,8 +858,8 @@ export default {
             type: "success"
           })
           this.updateCourse()
-        } else {
-          this.$message.error("There is something wrong with the system. Please try it later.")
+        } else if (response.data.status === "fail") {
+          this.$message.error("Course "+ row["cCode"] + " has at least one student.")
         }
       })
     },
@@ -985,7 +985,7 @@ export default {
           })
           this.updateStudent()
         } else if (response.data.status==="fail") {
-          this.$message.error("There is something wrong with the system. Please try it later.")
+          this.$message.error("Student "+ row["no"] + " has taken at least one course.")
         }
       }).catch(error => {
         console.log(error)
@@ -1092,7 +1092,7 @@ export default {
         }
       }).then(response => {
         if (response.data.status==="fail") {
-          this.$message.error("There is something wrong with the system. Please try it later.")
+          this.$message.error("Teacher "+row.no+" has at least one course.")
         }
         this.updateTeacher()
       }).catch(error =>{
