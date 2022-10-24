@@ -61,13 +61,11 @@ export default {
             type: 'success'
           })
           if (this.form.type === 'student') {
-            var selectedCourses = JSON.parse(response.data.selectedCourses)
             this.$router.push({
               name: 'SelectCourse',
               params: {
                 no: response.data.no,
-                name: response.data.name,
-                selectedCourses: selectedCourses
+                name: response.data.name
               }
             })
           } else if (this.form.type === 'administrator') {

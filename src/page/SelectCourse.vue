@@ -62,17 +62,25 @@
             <el-table
               ref="multipleTable"
               :data="dataCourse"
-              border
               empty-text="No data."
               @selection-change="handleSelectChange"
               style="width: 100%">
               <el-table-column type="selection" width="55"></el-table-column>
               <el-table-column prop="cCode" label="Course Code"></el-table-column>
               <el-table-column prop="cName" label="Course Name"></el-table-column>
-              <el-table-column prop="credit" label="Unit"></el-table-column>
+              <el-table-column prop="credit" label="Unit" width="70"></el-table-column>
               <el-table-column prop="cDept" label="Department"></el-table-column>
               <el-table-column prop="tName" label="Teacher"></el-table-column>
             </el-table>
+            <el-pagination
+              v-show="this.dataCourse!==''"
+              small
+              layout="prev, pager, next"
+              :page-size="pageSize"
+              :pager-count="5"
+              :total="pageCountSearch"
+              @current-change="handleCurrentChangeSearch">
+            </el-pagination>
           </div>
           <br>
           <div>
@@ -91,17 +99,25 @@
             <el-table
               ref="multipleTable"
               :data="selectedCourses"
-              border
               empty-text="No courses selected."
               @selection-change="handleDropChange"
               style="width: 100%">
               <el-table-column type="selection" width="55"></el-table-column>
               <el-table-column prop="cCode" label="Course Code"></el-table-column>
               <el-table-column prop="cName" label="Course Name"></el-table-column>
-              <el-table-column prop="credit" label="Unit"></el-table-column>
+              <el-table-column prop="credit" label="Unit" width="70"></el-table-column>
               <el-table-column prop="cDept" label="Department"></el-table-column>
               <el-table-column prop="tName" label="Teacher"></el-table-column>
             </el-table>
+            <el-pagination
+              v-show="this.selectedCourses!==''"
+              small
+              layout="prev, pager, next"
+              :page-size="pageSize"
+              :pager-count="5"
+              :total="pageCountSelected"
+              @current-change="handleCurrentChangeSelected">
+            </el-pagination>
           </div>
         </template>
         <template v-else>
@@ -160,6 +176,7 @@
 export default {
   data () {
     var date = new Date()
+    this.updateSelected()
     return {
       // 学生信息
       sNo: this.$route.params.no,       // student number
@@ -170,14 +187,17 @@ export default {
       button1IsAble: true,
       button2IsAble: true,
       dataCourse: '',                   // course data for table
-      selectedCourses: this.$route.params.selectedCourses,    // selected courses data for table
+      selectedCourses: '',              // selected courses data for table
       completedCourses: '',             // completed courses data for table
       selectCourse: [],					        // course code for selecting
       dropCourse: [],						        // course code for dropping
       year: date.getFullYear(),
       month: date.getMonth() + 1,
       day: date.getDate(),
-      avgGrade: 0
+      avgGrade: 0,
+      pageCountSearch: 0,
+      pageCountSelected: 0,
+      pageSize: 4
     }
   },
   methods: {
@@ -244,10 +264,29 @@ export default {
       })
     },
     updateSelected () {
+      this.pageSize = 4
       // update selected courses
       this.$axios.get('http://localhost:5000/student', {
         params: {
-          sNo: this.sNo,
+          sNo: this.$route.params.no,
+          pageNum: 1,
+          pageSize: this.pageSize,
+          action: "selectedCourse"
+        }
+      }).then(response => {
+        console.log(response.data)
+        this.selectedCourses = JSON.parse(response.data.selectedCourses)
+        this.pageCountSelected = JSON.parse(response.data.pageCount)
+      }).catch(error => {
+        console.log(error)
+      })
+    },
+    handleCurrentChangeSelected(currentPage) {
+      this.$axios.get('http://localhost:5000/student', {
+        params: {
+          sNo: this.$route.params.no,
+          pageNum: currentPage,
+          pageSize: this.pageSize,
           action: "selectedCourse"
         }
       }).then(response => {
@@ -285,10 +324,26 @@ export default {
       this.$axios.get('http://localhost:5000/student', {
         params: {
           courseCode: this.inputCourseCode,
+          pageNum: 1,
+          pageSize: this.pageSize,
           action: "searchCourse"
         }
       }).then(response => {
-        console.log(response.data.dataCourse)
+        this.dataCourse = JSON.parse(response.data.dataCourse)
+        this.pageCountSearch = JSON.parse(response.data.pageCount)
+      }).catch(error => {
+        console.log(error)
+      })
+    },
+    handleCurrentChangeSearch(currentPage) {
+      this.$axios.get('http://localhost:5000/student', {
+        params: {
+          courseCode: this.inputCourseCode,
+          pageNum: currentPage,
+          pageSize: this.pageSize,
+          action: "searchCourse"
+        }
+      }).then(response => {
         this.dataCourse = JSON.parse(response.data.dataCourse)
       }).catch(error => {
         console.log(error)
@@ -298,6 +353,7 @@ export default {
       // 清空搜索框
       this.inputCourseCode = ''
       this.dataCourse = ''
+      this.pageCountSearch = 0
     },
   }
 }

@@ -890,8 +890,6 @@ export default {
       } else {
         this.newStudent.name = null
       }
-      delete this.newStudent.firstName
-      delete this.newStudent.lastName
       this.$axios.get("http://localhost:5000/administrator", {
         params: {
           newStudent: this.newStudent,
@@ -1004,8 +1002,6 @@ export default {
       } else {
         this.newTeacher.name = null
       }
-      delete this.newTeacher.firstName
-      delete this.newTeacher.lastName
       this.$axios.get("http://localhost:5000/administrator", {
         params: {
           newTeacher: JSON.stringify(this.newTeacher),
