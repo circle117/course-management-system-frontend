@@ -149,12 +149,13 @@
                   <el-button
                     type="primary"
                     @click="handleAddTeacher"
+                    size="small"
                     style="width: 100%">
                     Create
                   </el-button>
                 </el-col>
                 <el-col :span="12">
-                  <el-button plain @click="handleClearAdd" style="width: 100%">
+                  <el-button plain size="small" @click="handleClearAdd" style="width: 100%">
                     Clear
                   </el-button>
                 </el-col>
@@ -163,7 +164,7 @@
                 ref="multipleTableTeacher"
                 @selection-change="handleTeacherSelectChange"
                 :data="dataTeacher"
-                height="250"
+                height="240"
                 empty-text="No teacher data. Please add a teacher first."
                 style="width: 100%">
                 <el-table-column type="selection" width="55"></el-table-column>
@@ -171,23 +172,31 @@
                 <el-table-column prop="name" label="Name"></el-table-column>
                 <el-table-column prop="department" label="Department"></el-table-column>
               </el-table>
-              <p>Edit one course, and then all the items of the same course code will be changed.</p>
+              <el-pagination
+                v-show="this.dataTeacher!==''"
+                small
+                layout="prev, pager, next"
+                :page-size="pageSize"
+                :pager-count="5"
+                :total="pageCountTeacher"
+                @current-change="handleCurrentChangeTeacher">
+              </el-pagination>
               <el-table
                 ref="singleTable"
                 :data="dataCourse.filter(dataCourse => !searchCourse ||dataCourse.cCode.includes(searchCourse))"
                 highlight-current-row
+                height="267"
                 @current-change="handleCourseSelectChange"
-                height="250"
                 empty-text="No course data."
                 style="width: 100%">
-                <el-table-column prop="cCode" label="Course Code"></el-table-column>
+                <el-table-column prop="cCode" label="Course Code" width="120"></el-table-column>
                 <el-table-column prop="cName" label="Course Name">
                   <template slot-scope="scope">
                     <span v-show="!scope.row.edit">{{scope.row.cName}}</span>
                     <el-input v-show="scope.row.edit" size="mini" v-model="scope.row.cName"></el-input>
                   </template>
                 </el-table-column>
-                <el-table-column prop="credit" label="Unit">
+                <el-table-column prop="credit" label="Unit" width="60">
                   <template slot-scope="scope">
                     <span v-show="!scope.row.edit">{{scope.row.credit}}</span>
                     <el-input v-show="scope.row.edit" size="mini" v-model="scope.row.credit"></el-input>
@@ -199,7 +208,7 @@
                     <el-input v-show="scope.row.edit" size="mini" v-model="scope.row.cDept"></el-input>
                   </template>
                 </el-table-column>
-                <el-table-column prop="tNo" label="Teacher No"></el-table-column>
+                <el-table-column prop="tNo" label="Teacher No" width="120"></el-table-column>
                 <el-table-column label="" with="55" align="center">
                   <template slot="header" slot-scope="scope">
                     <el-input
@@ -241,6 +250,15 @@
                   </template>
                 </el-table-column>
               </el-table>
+              <el-pagination
+                v-show="this.dataCourse!==''"
+                small
+                layout="prev, pager, next"
+                :page-size="pageSize"
+                :pager-count="5"
+                :total="pageCountCourse"
+                @current-change="handleCurrentChangeCourse">
+              </el-pagination>
             </div>
           </template>
         </template>
@@ -316,17 +334,23 @@
                 :data="dataStudent.filter(dataStudent => !searchStudent ||dataStudent.name.includes(searchStudent))"
                 empty-text="No student data."
                 style="width: 100%">
-                <el-table-column prop="no" label="Student No"></el-table-column>
+                <el-table-column prop="no" label="Student No" width="120"></el-table-column>
                 <el-table-column prop="name" label="Name">
                   <template slot-scope="scope">
                     <span v-show="!scope.row.edit">{{scope.row.name}}</span>
                     <el-input v-show="scope.row.edit" size="mini" v-model="scope.row.name"></el-input>
                   </template>
                 </el-table-column>
-                <el-table-column prop="gender" label="Gender">
+                <el-table-column prop="gender" label="Gender" width="120">
                   <template slot-scope="scope">
                     <span v-show="!scope.row.edit">{{scope.row.gender}}</span>
-                    <el-input v-show="scope.row.edit" size="mini" v-model="scope.row.gender"></el-input>
+                    <el-select v-show="scope.row.edit" v-model="scope.row.gender" size="small">
+                      <el-option
+                        v-for="item in optionsGender"
+                        :key="item.value"
+                        :label="item.label"
+                        :value="item.value"></el-option>
+                    </el-select>
                   </template>
                 </el-table-column>
                 <el-table-column prop="birthday" label="Birthday">
@@ -388,6 +412,15 @@
                   </template>
                 </el-table-column>
               </el-table>
+              <el-pagination
+                v-show="this.dataStudent!==''"
+                small
+                layout="prev, pager, next"
+                :page-size="pageSizeLarge"
+                :pager-count="5"
+                :total="pageCountStudent"
+                @current-change="handleCurrentChangeStudent">
+              </el-pagination>
             </div>
           </template>
         </template>
@@ -474,7 +507,13 @@
                 <el-table-column prop="gender" label="Gender">
                   <template slot-scope="scope">
                     <span v-show="!scope.row.edit">{{scope.row.gender}}</span>
-                    <el-input v-show="scope.row.edit" size="mini" v-model="scope.row.gender"></el-input>
+                    <el-select v-show="scope.row.edit" v-model="scope.row.gender" size="small">
+                      <el-option
+                        v-for="item in optionsGender"
+                        :key="item.value"
+                        :label="item.label"
+                        :value="item.value"></el-option>
+                    </el-select>
                   </template>
                 </el-table-column>
                 <el-table-column prop="birthday" label="Birthday">
@@ -537,6 +576,15 @@
                   </template>
                 </el-table-column>
               </el-table>
+              <el-pagination
+                v-show="this.dataTeacher!==''"
+                small
+                layout="prev, pager, next"
+                :page-size="pageSizeLarge"
+                :pager-count="5"
+                :total="pageCountTeacher"
+                @current-change="handleCurrentChangeTeacher">
+              </el-pagination>
             </div>
           </template>
         </template>
@@ -622,7 +670,19 @@ export default {
       searchTeacher: '',
       oldTeacher: {},
       editTeacher: {},
-      editableTeacher: true
+      editableTeacher: true,
+      pageSize: 4,
+      pageSizeLarge: 9,
+      pageCountTeacher: 0,
+      pageCountCourse: 0,
+      pageCountStudent: 0,
+      optionsGender: [{
+        value: 'male',
+        label: 'male'
+      }, {
+        value: 'female',
+        label: 'female'
+      }]
     }
   },
   methods: {
@@ -732,6 +792,24 @@ export default {
     updateCourse() {
       this.$axios.get("http://localhost:5000/administrator", {
         params: {
+          pageNum: 1,
+          pageSize: this.pageSize,
+          action: "getCourseList"
+        }
+      }).then(response => {
+        this.pageCountCourse = JSON.parse(response.data.pageCount)
+        this.dataCourse = []
+        JSON.parse(response.data.dataCourse).forEach(item => {
+          item.edit = false
+          this.dataCourse.push(item)
+        })
+      })
+    },
+    handleCurrentChangeCourse(currentPage) {
+      this.$axios.get("http://localhost:5000/administrator", {
+        params: {
+          pageNum: currentPage,
+          pageSize: this.pageSize,
           action: "getCourseList"
         }
       }).then(response => {
@@ -745,6 +823,25 @@ export default {
     updateTeacher() {
       this.$axios.get("http://localhost:5000/administrator", {
         params: {
+          pageNum: 1,
+          pageSize: this.pageSize,
+          action: "getTeacherList"
+        }
+      }).then(response => {
+        console.log(response)
+        this.pageCountTeacher = JSON.parse(response.data.pageCount)
+        this.dataTeacher = []
+        JSON.parse(response.data.dataTeacher).forEach(item => {
+          item.edit = false
+          this.dataTeacher.push(item)
+        })
+      })
+    },
+    handleCurrentChangeTeacher(currentPage) {
+      this.$axios.get("http://localhost:5000/administrator", {
+        params: {
+          pageNum: currentPage,
+          pageSize: this.pageSize,
           action: "getTeacherList"
         }
       }).then(response => {
@@ -867,6 +964,26 @@ export default {
     updateStudent() {
       this.$axios.get("http://localhost:5000/administrator", {
         params: {
+          pageNum: 1,
+          pageSize: this.pageSizeLarge,
+          action: "getStudentList"
+        }
+      }).then(response =>{
+        this.pageCountStudent = JSON.parse(response.data.pageCount)
+        this.dataStudent = []
+        JSON.parse(response.data.dataStudent).forEach(item => {
+          item.edit = false
+          this.dataStudent.push(item)
+        })
+      }).catch(error =>{
+        console.log(error)
+      })
+    },
+    handleCurrentChangeStudent(currentPage) {
+      this.$axios.get("http://localhost:5000/administrator", {
+        params: {
+          pageNum: currentPage,
+          pageSize: this.pageSizeLarge,
           action: "getStudentList"
         }
       }).then(response =>{
