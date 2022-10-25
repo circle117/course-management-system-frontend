@@ -145,120 +145,129 @@
           <template v-if="activeNameCourse==='second'">
             <div>
               <el-row :gutter="20">
-                <el-col :span="12">
-                  <el-button
-                    type="primary"
-                    @click="handleAddTeacher"
-                    size="small"
+                <el-col :span="14">
+                  <el-form :inline="true" :model="courseSearchForm" size="small">
+                    <el-form-item>
+                      <el-input v-model="courseSearchForm.courseCode" placeholder="Course Code" size="small"></el-input>
+                    </el-form-item>
+                    <el-form-item>
+                      <el-button type="primary" @click="searchCourse" circle size="small">
+                        <el-icon class="el-icon-search"></el-icon>
+                      </el-button>
+                    </el-form-item>
+                    <el-form-item>
+                      <el-button type="primary"
+                      @click="handleAddTeacher">Add Teacher</el-button>
+                    </el-form-item>
+                    <el-form-item>
+                      <el-button plain @click="handleClearAdd">Clear</el-button>
+                    </el-form-item>
+                  </el-form>
+                  <el-table
+                    ref="singleTable"
+                    :data="dataCourse"
+                    highlight-current-row
+                    @current-change="handleCourseSelectChange"
+                    empty-text="No course data."
                     style="width: 100%">
-                    Create
-                  </el-button>
+                    <el-table-column fixed prop="cCode" label="Course Code" width="120"></el-table-column>
+                    <el-table-column prop="cName" label="Course Name" width="150">
+                      <template slot-scope="scope">
+                        <span v-show="!scope.row.edit">{{scope.row.cName}}</span>
+                        <el-input v-show="scope.row.edit" size="mini" v-model="scope.row.cName"></el-input>
+                      </template>
+                    </el-table-column>
+                    <el-table-column prop="credit" label="Unit" width="60">
+                      <template slot-scope="scope">
+                        <span v-show="!scope.row.edit">{{scope.row.credit}}</span>
+                        <el-input v-show="scope.row.edit" size="mini" v-model="scope.row.credit"></el-input>
+                      </template>
+                    </el-table-column>
+                    <el-table-column prop="cDept" label="Department" width="150">
+                      <template slot-scope="scope">
+                        <span v-show="!scope.row.edit">{{scope.row.cDept}}</span>
+                        <el-input v-show="scope.row.edit" size="mini" v-model="scope.row.cDept"></el-input>
+                      </template>
+                    </el-table-column>
+                    <el-table-column prop="tNo" label="Teacher No" width="100"></el-table-column>
+                    <el-table-column fixed="right" label="" width="150" align="center">
+                      <template slot-scope="scope">
+                        <el-button
+                          v-show="!scope.row.edit"
+                          type="primary"
+                          icon="el-icon-edit"
+                          circle
+                          @click.native.prevent="handleChangeEditStatusCourse(scope.$index, scope.row)"
+                          size="mini">
+                        </el-button>
+                        <el-button
+                          v-show="scope.row.edit"
+                          type="primary"
+                          icon="el-icon-check"
+                          circle
+                          @click.native.prevent="handleEditCourse(scope.$index, scope.row)"
+                          size="mini">
+                        </el-button>
+                        <el-button
+                          v-show="scope.row.edit"
+                          icon="el-icon-close"
+                          circle
+                          @click.native.prevent="handleCancelEditCourse(scope.$index, scope.row)"
+                          size="mini">
+                        </el-button>
+                        <el-button
+                          type="danger"
+                          icon="el-icon-delete"
+                          circle
+                          @click.native.prevent="handleDeleteCourse(scope.$index, scope.row)"
+                          size="mini">
+                        </el-button>
+                      </template>
+                    </el-table-column>
+                  </el-table>
+                  <el-pagination
+                    v-show="this.dataCourse!==''"
+                    small
+                    layout="prev, pager, next"
+                    :page-size="pageSizeLarge"
+                    :pager-count="5"
+                    :total="pageCountCourse"
+                    @current-change="handleCurrentChangeCourse">
+                  </el-pagination>
                 </el-col>
-                <el-col :span="12">
-                  <el-button plain size="small" @click="handleClearAdd" style="width: 100%">
-                    Clear
-                  </el-button>
+                <el-col :span="10">
+                  <el-form :inline="true" :model="teacherSearchForm" size="small">
+                    <el-form-item>
+                      <el-input v-model="teacherSearchForm.teacherNo" placeholder="Teacher No" size="small"></el-input>
+                    </el-form-item>
+                    <el-form-item>
+                      <el-button type="primary" @click="searchTeacher" circle size="small">
+                        <el-icon class="el-icon-search"></el-icon>
+                      </el-button>
+                    </el-form-item>
+                  </el-form>
+                  <el-table
+                    ref="multipleTableTeacher"
+                    @selection-change="handleTeacherSelectChange"
+                    :data="dataTeacher"
+                    empty-text="No teacher data. Please add a teacher first."
+                    style="width: 100%">
+                    <el-table-column fixed type="selection" width="55"></el-table-column>
+                    <el-table-column fixed prop="no" label="Teacher No"></el-table-column>
+                    <el-table-column fixed prop="name" label="Name"></el-table-column>
+                    <el-table-column prop="department" label="Department" width="150"></el-table-column>
+                  </el-table>
+                  <el-pagination
+                    v-show="this.dataTeacher!==''"
+                    small
+                    layout="prev, pager, next"
+                    :page-size="pageSizeLarge"
+                    :pager-count="5"
+                    :total="pageCountTeacher"
+                    @current-change="handleCurrentChangeTeacher">
+                  </el-pagination>
                 </el-col>
               </el-row>
-              <el-table
-                ref="multipleTableTeacher"
-                @selection-change="handleTeacherSelectChange"
-                :data="dataTeacher"
-                height="240"
-                empty-text="No teacher data. Please add a teacher first."
-                style="width: 100%">
-                <el-table-column type="selection" width="55"></el-table-column>
-                <el-table-column prop="no" label="Teacher No"></el-table-column>
-                <el-table-column prop="name" label="Name"></el-table-column>
-                <el-table-column prop="department" label="Department"></el-table-column>
-              </el-table>
-              <el-pagination
-                v-show="this.dataTeacher!==''"
-                small
-                layout="prev, pager, next"
-                :page-size="pageSize"
-                :pager-count="5"
-                :total="pageCountTeacher"
-                @current-change="handleCurrentChangeTeacher">
-              </el-pagination>
-              <el-table
-                ref="singleTable"
-                :data="dataCourse.filter(dataCourse => !searchCourse ||dataCourse.cCode.includes(searchCourse))"
-                highlight-current-row
-                height="267"
-                @current-change="handleCourseSelectChange"
-                empty-text="No course data."
-                style="width: 100%">
-                <el-table-column prop="cCode" label="Course Code" width="120"></el-table-column>
-                <el-table-column prop="cName" label="Course Name">
-                  <template slot-scope="scope">
-                    <span v-show="!scope.row.edit">{{scope.row.cName}}</span>
-                    <el-input v-show="scope.row.edit" size="mini" v-model="scope.row.cName"></el-input>
-                  </template>
-                </el-table-column>
-                <el-table-column prop="credit" label="Unit" width="60">
-                  <template slot-scope="scope">
-                    <span v-show="!scope.row.edit">{{scope.row.credit}}</span>
-                    <el-input v-show="scope.row.edit" size="mini" v-model="scope.row.credit"></el-input>
-                  </template>
-                </el-table-column>
-                <el-table-column prop="cDept" label="Department">
-                  <template slot-scope="scope">
-                    <span v-show="!scope.row.edit">{{scope.row.cDept}}</span>
-                    <el-input v-show="scope.row.edit" size="mini" v-model="scope.row.cDept"></el-input>
-                  </template>
-                </el-table-column>
-                <el-table-column prop="tNo" label="Teacher No" width="120"></el-table-column>
-                <el-table-column label="" with="55" align="center">
-                  <template slot="header" slot-scope="scope">
-                    <el-input
-                      v-model="searchCourse"
-                      size="mini"
-                      placeholder="Course Code"></el-input>
-                  </template>
-                  <template slot-scope="scope">
-                    <el-button
-                      v-show="!scope.row.edit"
-                      type="primary"
-                      icon="el-icon-edit"
-                      circle
-                      @click.native.prevent="handleChangeEditStatusCourse(scope.$index, scope.row)"
-                      size="mini">
-                    </el-button>
-                    <el-button
-                      v-show="scope.row.edit"
-                      type="primary"
-                      icon="el-icon-check"
-                      circle
-                      @click.native.prevent="handleEditCourse(scope.$index, scope.row)"
-                      size="mini">
-                    </el-button>
-                    <el-button
-                      v-show="scope.row.edit"
-                      icon="el-icon-close"
-                      circle
-                      @click.native.prevent="handleCancelEditCourse(scope.$index, scope.row)"
-                      size="mini">
-                    </el-button>
-                    <el-button
-                      type="danger"
-                      icon="el-icon-delete"
-                      circle
-                      @click.native.prevent="handleDeleteCourse(scope.$index, scope.row)"
-                      size="mini">
-                    </el-button>
-                  </template>
-                </el-table-column>
-              </el-table>
-              <el-pagination
-                v-show="this.dataCourse!==''"
-                small
-                layout="prev, pager, next"
-                :page-size="pageSize"
-                :pager-count="5"
-                :total="pageCountCourse"
-                @current-change="handleCurrentChangeCourse">
-              </el-pagination>
             </div>
           </template>
         </template>
@@ -632,10 +641,12 @@ export default {
       dataTeacher: '',
       teacherSelection: [],
       dataCourse: [],
-      courseSelection: '',
-      searchCourse: '',
+      courseSelection: null,
       oldCourse: {},
       editableCourse: true,
+      courseSearchForm: {
+        courseCode: ''
+      },
       // student management
       activeNameStudent: 'first',
       newStudent: {
@@ -671,6 +682,9 @@ export default {
       oldTeacher: {},
       editTeacher: {},
       editableTeacher: true,
+      teacherSearchForm: {
+        teacherNo: ''
+      },
       pageSize: 4,
       pageSizeLarge: 9,
       pageCountTeacher: 0,
@@ -793,7 +807,7 @@ export default {
       this.$axios.get("http://localhost:5000/administrator", {
         params: {
           pageNum: 1,
-          pageSize: this.pageSize,
+          pageSize: this.pageSizeLarge,
           action: "getCourseList"
         }
       }).then(response => {
@@ -806,25 +820,40 @@ export default {
       })
     },
     handleCurrentChangeCourse(currentPage) {
-      this.$axios.get("http://localhost:5000/administrator", {
-        params: {
-          pageNum: currentPage,
-          pageSize: this.pageSize,
-          action: "getCourseList"
-        }
-      }).then(response => {
-        this.dataCourse = []
-        JSON.parse(response.data.dataCourse).forEach(item => {
-          item.edit = false
-          this.dataCourse.push(item)
+      if (this.courseSearchForm.courseCode === '') {
+        this.$axios.get("http://localhost:5000/administrator", {
+          params: {
+            pageNum: currentPage,
+            pageSize: this.pageSizeLarge,
+            action: "getCourseList"
+          }
+        }).then(response => {
+          this.dataCourse = []
+          JSON.parse(response.data.dataCourse).forEach(item => {
+            item.edit = false
+            this.dataCourse.push(item)
+          })
         })
-      })
+      } else {
+        this.$axios.get('http://localhost:5000/student', {
+          params: {
+            courseCode: this.courseSearchForm.courseCode,
+            pageNum: currentPage,
+            pageSize: this.pageSizeLarge,
+            action: "searchCourse"
+          }
+        }).then(response => {
+          this.dataCourse = JSON.parse(response.data.dataCourse)
+        }).catch(error => {
+          console.log(error)
+        })
+      }
     },
     updateTeacher() {
       this.$axios.get("http://localhost:5000/administrator", {
         params: {
           pageNum: 1,
-          pageSize: this.pageSize,
+          pageSize: this.pageSizeLarge,
           action: "getTeacherList"
         }
       }).then(response => {
@@ -841,7 +870,7 @@ export default {
       this.$axios.get("http://localhost:5000/administrator", {
         params: {
           pageNum: currentPage,
-          pageSize: this.pageSize,
+          pageSize: this.pageSizeLarge,
           action: "getTeacherList"
         }
       }).then(response => {
@@ -850,6 +879,21 @@ export default {
           item.edit = false
           this.dataTeacher.push(item)
         })
+      })
+    },
+    searchCourse() {
+      this.$axios.get('http://localhost:5000/student', {
+        params: {
+          courseCode: this.courseSearchForm.courseCode,
+          pageNum: 1,
+          pageSize: this.pageSizeLarge,
+          action: "searchCourse"
+        }
+      }).then(response => {
+        this.dataCourse = JSON.parse(response.data.dataCourse)
+        this.pageCountCourse = JSON.parse(response.data.pageCount)
+      }).catch(error => {
+        console.log(error)
       })
     },
     // add teachers for the course
@@ -865,6 +909,8 @@ export default {
     handleAddTeacher() {
       if (this.teacherSelection.length === 0) {
         this.$message.error("Please select at least one teacher.")
+      } else if (this.courseSelection === null) {
+        this.$message.error("Please select a course.")
       } else {
         this.$axios.get("http://localhost:5000/administrator", {
           params: {
@@ -880,6 +926,11 @@ export default {
             } else {
               this.$message.error("Teacher " + failTeacherNo.join(", ") + " have already taught the course.")
             }
+          } else {
+            this.$message({
+              message: "Add teacher successfully",
+              type: "success"
+            })
           }
           this.updateCourse();
           this.handleClearAdd();
@@ -892,6 +943,8 @@ export default {
     handleClearAdd() {
       this.$refs.singleTable.setCurrentRow();
       this.$refs.multipleTableTeacher.clearSelection();
+      this.courseSearchForm.courseCode = ''
+      this.updateCourse()
     },
     handleChangeEditStatusCourse(index, row) {
       this.oldCourse["cCode"] = null
