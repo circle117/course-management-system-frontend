@@ -2,20 +2,21 @@
 // (runtime-only or standalone) has been set in webpack.base.conf with an alias.
 import Vue from 'vue'
 import ElementUI from 'element-ui'
+import VueCookies from 'vue-cookies'
 import 'element-ui/lib/theme-chalk/index.css'
 import router from "./router";
 import axios from "axios";
 
 Vue.prototype.$axios = axios
 Vue.config.productionTip = false
+axios.defaults.withCredentials = true       // 跨域请求时携带用户凭证（不忽略cookies）
 
 Vue.use(ElementUI)
+Vue.use(VueCookies)
 
 /* eslint-disable no-new */
 new Vue({
   el: '#app',
   axios,
   router
-  // components: { App, SelectCourse},
-  // template: '<App/>'
 })

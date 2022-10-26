@@ -30,9 +30,9 @@ export default {
   data () {
     return {
       form: {
-        username: '',
+        username: this.$cookies.get("username"),
         password: '',
-        type: 'student'
+        type: this.$cookies.get("type")
       },
       rule: {
         username: [
