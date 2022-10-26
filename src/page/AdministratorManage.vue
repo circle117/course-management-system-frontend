@@ -719,6 +719,11 @@ export default {
   },
   methods: {
     handleSignOut() {
+      this.$axios.get('http://localhost:5000/common', {
+        params: {
+          action: 'signOut'
+        }
+      })
       this.$router.push('/')
     },
     handleCurrentCourse() {

@@ -175,6 +175,7 @@
 <script>
 export default {
   data () {
+    console.log(window.sessionStorage)
     var date = new Date()
     this.updateSelected()
     return {
@@ -202,6 +203,11 @@ export default {
   },
   methods: {
     handleSignOut() {
+      this.$axios.get('http://localhost:5000/common', {
+        params: {
+          action: 'signOut'
+        }
+      })
       this.$router.push('/')
     },
     select () {

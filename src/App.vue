@@ -14,9 +14,9 @@
     </el-form-item>
     <el-form-item>
       <el-radio-group v-model="form.type">
-        <el-radio label="student">Student</el-radio>
-        <el-radio label="teacher">Teacher</el-radio>
-        <el-radio label="administrator">Administrator</el-radio>
+        <el-radio label="Student">Student</el-radio>
+        <el-radio label="Teacher">Teacher</el-radio>
+        <el-radio label="Administrator">Administrator</el-radio>
       </el-radio-group>
     </el-form-item>
     <el-form-item>
@@ -47,12 +47,12 @@ export default {
   },
   methods: {
     handleSubmit () {
-      console.log('http://localhost:5000/'+this.form.type)
-      this.$axios.get('http://localhost:5000/'+this.form.type, {
+      this.$axios.get('http://localhost:5000/common', {
         params: {
           action: "signIn",
           username: this.form.username,
-          password: this.form.password
+          password: this.form.password,
+          type: this.form.type
         }
       }).then(response => {
         if (response.data.status === 'success') {
@@ -60,7 +60,7 @@ export default {
             message: 'Sign in successfully!',
             type: 'success'
           })
-          if (this.form.type === 'student') {
+          if (this.form.type === 'Student') {
             this.$router.push({
               name: 'SelectCourse',
               params: {
@@ -68,7 +68,7 @@ export default {
                 name: response.data.name
               }
             })
-          } else if (this.form.type === 'administrator') {
+          } else if (this.form.type === 'Administrator') {
             this.$router.push({
               name: 'AdministratorManage',
               params: {
@@ -76,7 +76,7 @@ export default {
                 name: response.data.name
               }
             })
-          } else if (this.form.type === 'teacher') {
+          } else if (this.form.type === 'Teacher') {
             this.$router.push({
               name: 'TeacherManage',
               params: {
