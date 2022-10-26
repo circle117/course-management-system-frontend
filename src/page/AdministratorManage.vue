@@ -238,12 +238,15 @@
                 <el-col :span="10">
                   <el-form :inline="true" :model="teacherSearchForm" size="small">
                     <el-form-item>
-                      <el-input v-model="teacherSearchForm.teacherNo" placeholder="Teacher No" size="small"></el-input>
+                      <el-input v-model="teacherSearchForm.teacherName" placeholder="Teacher Name" size="small"></el-input>
                     </el-form-item>
                     <el-form-item>
                       <el-button type="primary" @click="searchTeacher" circle size="small">
                         <el-icon class="el-icon-search"></el-icon>
                       </el-button>
+                    </el-form-item>
+                    <el-form-item>
+                      <el-button plain @click="teacherSearchForm.teacherName=''; updateTeacher()" size="small">Clear</el-button>
                     </el-form-item>
                   </el-form>
                   <el-table
@@ -339,8 +342,21 @@
           </template>
           <template v-if="activeNameStudent==='second'">
             <div>
+              <el-form :inline="true" :model="StudentSearchForm" size="small">
+                <el-form-item>
+                  <el-input v-model="StudentSearchForm.studentName" placeholder="Student Name" size="small"></el-input>
+                </el-form-item>
+                <el-form-item>
+                  <el-button type="primary" @click="searchStudent" circle size="small">
+                    <el-icon class="el-icon-search"></el-icon>
+                  </el-button>
+                </el-form-item>
+                <el-form-item>
+                  <el-button plain @click="StudentSearchForm.studentName=''; updateStudent()" size="small">Clear</el-button>
+                </el-form-item>
+              </el-form>
               <el-table
-                :data="dataStudent.filter(dataStudent => !searchStudent ||dataStudent.name.includes(searchStudent))"
+                :data="dataStudent"
                 empty-text="No student data."
                 style="width: 100%">
                 <el-table-column prop="no" label="Student No" width="120"></el-table-column>
@@ -381,12 +397,6 @@
                 </el-table-column>
                 <el-table-column prop="username" label="Username"></el-table-column>
                 <el-table-column label="" with="55" align="center">
-                  <template slot="header" slot-scope="scope">
-                    <el-input
-                      v-model="searchStudent"
-                      size="mini"
-                      placeholder="Student Name"></el-input>
-                  </template>
                   <template slot-scope="scope">
                     <el-button
                       v-show="!scope.row.edit"
@@ -502,8 +512,21 @@
           <!-- edit teacher -->
           <template v-if="activeNameTeacher==='second'">
             <div>
+              <el-form :inline="true" :model="teacherSearchForm" size="small">
+                <el-form-item>
+                  <el-input v-model="teacherSearchForm.teacherName" placeholder="Teacher Name" size="small"></el-input>
+                </el-form-item>
+                <el-form-item>
+                  <el-button type="primary" @click="searchTeacher" circle size="small">
+                    <el-icon class="el-icon-search"></el-icon>
+                  </el-button>
+                </el-form-item>
+                <el-form-item>
+                  <el-button plain @click="teacherSearchForm.teacherName=''; updateTeacher()" size="small">Clear</el-button>
+                </el-form-item>
+              </el-form>
               <el-table
-                :data="dataTeacher.filter(dataTeacher => !searchTeacher ||dataTeacher.name.includes(searchTeacher))"
+                :data="dataTeacher"
                 empty-text="No teacher data."
                 style="width: 100%">
                 <el-table-column prop="no" label="Teacher No"></el-table-column>
@@ -544,12 +567,6 @@
                 </el-table-column>
                 <el-table-column prop="username" label="Username"></el-table-column>
                 <el-table-column label="" with="55" align="center">
-                  <template slot="header" slot-scope="scope">
-                    <el-input
-                      v-model="searchTeacher"
-                      size="mini"
-                      placeholder="Teacher Name"></el-input>
-                  </template>
                   <template slot-scope="scope">
                     <el-button
                       v-show="!scope.row.edit"
@@ -663,8 +680,10 @@ export default {
       oldStudent: {},
       editStudent: {},
       dataStudent: [],
-      searchStudent: '',
       editableStudent: true,
+      StudentSearchForm: {
+        studentName: ''
+      },
       // teacher management
       activeNameTeacher: 'first',
       newTeacher:{
@@ -678,15 +697,14 @@ export default {
         username: null,
         password: null
       },
-      searchTeacher: '',
       oldTeacher: {},
       editTeacher: {},
       editableTeacher: true,
       teacherSearchForm: {
-        teacherNo: ''
+        teacherName: ''
       },
       pageSize: 4,
-      pageSizeLarge: 9,
+      pageSizeLarge: 8,
       pageCountTeacher: 0,
       pageCountCourse: 0,
       pageCountStudent: 0,
@@ -835,7 +853,7 @@ export default {
           })
         })
       } else {
-        this.$axios.get('http://localhost:5000/student', {
+        this.$axios.get('http://localhost:5000/common', {
           params: {
             courseCode: this.courseSearchForm.courseCode,
             pageNum: currentPage,
@@ -848,6 +866,21 @@ export default {
           console.log(error)
         })
       }
+    },
+    searchCourse() {
+      this.$axios.get('http://localhost:5000/common', {
+        params: {
+          courseCode: this.courseSearchForm.courseCode,
+          pageNum: 1,
+          pageSize: this.pageSizeLarge,
+          action: "searchCourse"
+        }
+      }).then(response => {
+        this.dataCourse = JSON.parse(response.data.dataCourse)
+        this.pageCountCourse = JSON.parse(response.data.pageCount)
+      }).catch(error => {
+        console.log(error)
+      })
     },
     updateTeacher() {
       this.$axios.get("http://localhost:5000/administrator", {
@@ -867,33 +900,52 @@ export default {
       })
     },
     handleCurrentChangeTeacher(currentPage) {
+      if (this.teacherSearchForm.teacherName === '') {
+        this.$axios.get("http://localhost:5000/administrator", {
+          params: {
+            pageNum: currentPage,
+            pageSize: this.pageSizeLarge,
+            action: "getTeacherList"
+          }
+        }).then(response => {
+          this.dataTeacher = []
+          JSON.parse(response.data.dataTeacher).forEach(item => {
+            item.edit = false
+            this.dataTeacher.push(item)
+          })
+        })
+      } else {
+        this.$axios.get("http://localhost:5000/administrator", {
+          params: {
+            tName: this.teacherSearchForm.teacherName,
+            pageNum: currentPage,
+            pageSize: this.pageSizeLarge,
+            action: "searchTeacher"
+          }
+        }).then(response => {
+          this.dataTeacher = []
+          JSON.parse(response.data.dataTeacher).forEach(item => {
+            item.edit = false
+            this.dataTeacher.push(item)
+          })
+        })
+      }
+    },
+    searchTeacher() {
       this.$axios.get("http://localhost:5000/administrator", {
         params: {
-          pageNum: currentPage,
+          tName: this.teacherSearchForm.teacherName,
+          pageNum: 1,
           pageSize: this.pageSizeLarge,
-          action: "getTeacherList"
+          action: "searchTeacher"
         }
       }).then(response => {
+        this.pageCountTeacher = JSON.parse(response.data.pageCount)
         this.dataTeacher = []
         JSON.parse(response.data.dataTeacher).forEach(item => {
           item.edit = false
           this.dataTeacher.push(item)
         })
-      })
-    },
-    searchCourse() {
-      this.$axios.get('http://localhost:5000/student', {
-        params: {
-          courseCode: this.courseSearchForm.courseCode,
-          pageNum: 1,
-          pageSize: this.pageSizeLarge,
-          action: "searchCourse"
-        }
-      }).then(response => {
-        this.dataCourse = JSON.parse(response.data.dataCourse)
-        this.pageCountCourse = JSON.parse(response.data.pageCount)
-      }).catch(error => {
-        console.log(error)
       })
     },
     // add teachers for the course
@@ -944,7 +996,9 @@ export default {
       this.$refs.singleTable.setCurrentRow();
       this.$refs.multipleTableTeacher.clearSelection();
       this.courseSearchForm.courseCode = ''
+      this.teacherSearchForm.teacherName = ''
       this.updateCourse()
+      this.updateTeacher()
     },
     handleChangeEditStatusCourse(index, row) {
       this.oldCourse["cCode"] = null
@@ -1033,13 +1087,51 @@ export default {
       })
     },
     handleCurrentChangeStudent(currentPage) {
+      if (this.StudentSearchForm.studentName === '') {
+        this.$axios.get("http://localhost:5000/administrator", {
+          params: {
+            pageNum: currentPage,
+            pageSize: this.pageSizeLarge,
+            action: "getStudentList"
+          }
+        }).then(response => {
+          this.dataStudent = []
+          JSON.parse(response.data.dataStudent).forEach(item => {
+            item.edit = false
+            this.dataStudent.push(item)
+          })
+        }).catch(error => {
+          console.log(error)
+        })
+      } else {
+        this.$axios.get("http://localhost:5000/administrator", {
+          params: {
+            sName: this.StudentSearchForm.studentName,
+            pageNum: currentPage,
+            pageSize: this.pageSizeLarge,
+            action: "searchStudent"
+          }
+        }).then(response =>{
+          this.dataStudent = []
+          JSON.parse(response.data.dataStudent).forEach(item => {
+            item.edit = false
+            this.dataStudent.push(item)
+          })
+        }).catch(error =>{
+          console.log(error)
+        })
+      }
+    },
+    searchStudent() {
       this.$axios.get("http://localhost:5000/administrator", {
         params: {
-          pageNum: currentPage,
+          sName: this.StudentSearchForm.studentName,
+          pageNum: 1,
           pageSize: this.pageSizeLarge,
-          action: "getStudentList"
+          action: "searchStudent"
         }
       }).then(response =>{
+        this.pageCountStudent = JSON.parse(response.data.pageCount)
         this.dataStudent = []
         JSON.parse(response.data.dataStudent).forEach(item => {
           item.edit = false
