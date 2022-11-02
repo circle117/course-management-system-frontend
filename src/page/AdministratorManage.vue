@@ -102,7 +102,7 @@
         <!-- Course Info Management -->
         <template v-if="activeNameMenu==='2-1'">
           <el-tabs v-model="activeNameCourse" @tab-click="handleCourseClick">
-            <el-tab-pane label="Create Course" name="first"></el-tab-pane>
+            <el-tab-pane label="Add New Course" name="first"></el-tab-pane>
             <el-tab-pane label="Edit/Delete Course" name="second"></el-tab-pane>
           </el-tabs>
           <!-- create course -->
@@ -278,7 +278,7 @@
         <!-- Student Info Management -->
         <template v-if="activeNameMenu==='2-2'">
           <el-tabs v-model="activeNameStudent" @tab-click="handleStudentClick">
-            <el-tab-pane label="Create Student" name="first"></el-tab-pane>
+            <el-tab-pane label="Add New Student" name="first"></el-tab-pane>
             <el-tab-pane label="Edit/Delete Student" name="second"></el-tab-pane>
           </el-tabs>
           <!-- create student -->
@@ -448,7 +448,7 @@
         <!-- Teacher Info Management -->
         <template v-if="activeNameMenu==='2-3'">
           <el-tabs v-model="activeNameTeacher" @tab-click="handleTeacherClick">
-            <el-tab-pane label="Create Teacher" name="first"></el-tab-pane>
+            <el-tab-pane label="Add New Teacher" name="first"></el-tab-pane>
             <el-tab-pane label="Edit/Delete Teacher" name="second"></el-tab-pane>
           </el-tabs>
           <!-- create teacher -->
@@ -1043,6 +1043,7 @@ export default {
         }).then(response => {
           if (response.data.status === "success") {
             this.dataCourse[index].edit = false
+            this.editableCourse = true
             this.updateCourse()
           } else {
             this.$message.error("Input error.")

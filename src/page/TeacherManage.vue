@@ -4,7 +4,7 @@
       <el-row>
         <el-col :span="16">
           <div style="font-size: 20px">
-            <b>Administrator Course Management System</b>
+            <b>Teacher Grade Management System</b>
           </div>
         </el-col>
         <el-col :span="8">
