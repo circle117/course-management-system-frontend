@@ -327,7 +327,7 @@ export default {
     },
     handleSearch () {
       // 搜索课程
-      this.$axios.get('http://localhost:5000/student', {
+      this.$axios.get('http://localhost:5000/common', {
         params: {
           courseCode: this.inputCourseCode,
           pageNum: 1,
