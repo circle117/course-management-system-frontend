@@ -197,6 +197,7 @@
                           type="primary"
                           icon="el-icon-edit"
                           circle
+                          :disabled="!editableCourse"
                           @click.native.prevent="handleChangeEditStatusCourse(scope.$index, scope.row)"
                           size="mini">
                         </el-button>
@@ -403,6 +404,7 @@
                       type="primary"
                       icon="el-icon-edit"
                       circle
+                      :disabled="!editableStudent"
                       @click.native.prevent="handleChangeEditStatusStudent(scope.$index, scope.row)"
                       size="mini">
                     </el-button>
