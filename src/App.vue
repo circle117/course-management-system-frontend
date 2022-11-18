@@ -47,13 +47,9 @@ export default {
   },
   methods: {
     handleSubmit () {
-      this.$axios.get('http://localhost:5000/common', {
-        params: {
-          action: "signIn",
-          username: this.form.username,
-          password: this.form.password,
-          type: this.form.type
-        }
+      this.$axios({
+        method: 'get',
+        url: '/signIn/'+this.form.username+'/'+this.form.password+'/'+this.form.type
       }).then(response => {
         if (response.data.status === 'success') {
           this.$message({

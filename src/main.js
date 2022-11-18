@@ -9,7 +9,8 @@ import axios from "axios";
 
 Vue.prototype.$axios = axios
 Vue.config.productionTip = false
-axios.defaults.withCredentials = true       // 跨域请求时携带用户凭证（不忽略cookies）
+axios.defaults.baseURL = "http://localhost:5000/"
+
 
 Vue.use(ElementUI)
 Vue.use(VueCookies)

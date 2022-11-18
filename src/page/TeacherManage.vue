@@ -96,13 +96,11 @@
 export default {
   data(){
     if (this.$route.params.no !== null) {
-      this.$axios.get("http://localhost:5000/teacher", {
-        params: {
-          no: this.$route.params.no,
-          action: "courseNameList"
-        }
+      this.$axios({
+        method: 'get',
+        url: '/courseName/'+this.$route.params.no
       }).then(response =>{
-        this.courseNameList = JSON.parse(response.data.courseNameList)
+        this.courseNameList = response.data
       })
     }
     return {
@@ -121,10 +119,9 @@ export default {
   },
   methods: {
     handleSignOut() {
-      this.$axios.get('http://localhost:5000/common', {
-        params: {
-          action: 'signOut'
-        }
+      this.$axios({
+        method: 'get',
+        url: '/signOut'
       })
       this.$router.push('/')
     },
@@ -137,27 +134,21 @@ export default {
       this.getSelectedCourseStudent()
     },
     getCompletedCourseStudent() {
-      this.$axios.get("http://localhost:5000/teacher", {
-        params: {
-          cName: this.currentCourse,
-          tNo: this.no,
-          action: "completedCourseStudent"
-        }
+      this.$axios({
+        method: 'get',
+        url: '/completedGrade/'+this.currentCourse+'/'+this.no
       }).then(response => {
-        this.completedCourseStudent = JSON.parse(response.data.completedCourseStudent)
+        this.completedCourseStudent = response.data
       }).catch(error =>{
         console.log(error)
       })
     },
     getSelectedCourseStudent() {
-      this.$axios.get("http://localhost:5000/teacher", {
-        params: {
-          cName: this.currentCourse,
-          tNo: this.no,
-          action: "selectedCourseStudent"
-        }
+      this.$axios({
+        methos: 'get',
+        url: '/selectedGrade/'+this.currentCourse+'/'+this.no
       }).then(response => {
-        this.selectedCourseStudent = JSON.parse(response.data.selectedCourseStudent)
+        this.selectedCourseStudent = response.data
       }).catch(error =>{
         console.log(error)
       })
@@ -166,16 +157,14 @@ export default {
       if (this.currentStudent==null) {
         this.$message.error("Please select a student below.")
       } else if (this.inputGrade.grade>=0 && this.inputGrade.grade<=100) {
-        this.$axios.get("http://localhost:5000/teacher", {
+        this.$axios({
+          method: 'post',
           params: {
-            sNo: this.currentStudent.no,
-            grade: this.inputGrade.grade,
-            cName: this.currentCourse,
-            action: "submitGrade"
-          }
+            _method: 'put'
+          },
+          url: '/grade/'+this.currentStudent.no+'/'+this.inputGrade.grade+'/'+this.currentCourse
         }).then(response => {
-          console.log(response.data)
-          if (response.data.status === "success") {
+          if (response.data === "success") {
             this.getSelectedCourseStudent()
             this.getCompletedCourseStudent()
             this.inputGrade.sNo = ''

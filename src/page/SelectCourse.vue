@@ -175,7 +175,7 @@
 <script>
 export default {
   data () {
-    console.log(window.sessionStorage)
+    this.currentPageSelected = 1
     var date = new Date()
     this.updateSelected()
     return {
@@ -187,9 +187,9 @@ export default {
       inputCourseCode: '',						  // search course input
       button1IsAble: true,
       button2IsAble: true,
-      dataCourse: '',                   // course data for table
-      selectedCourses: '',              // selected courses data for table
-      completedCourses: '',             // completed courses data for table
+      dataCourse: [],                   // course data for table
+      selectedCourses: [],              // selected courses data for table
+      completedCourses: [],             // completed courses data for table
       selectCourse: [],					        // course code for selecting
       dropCourse: [],						        // course code for dropping
       year: date.getFullYear(),
@@ -203,29 +203,34 @@ export default {
   },
   methods: {
     handleSignOut() {
-      this.$axios.get('http://localhost:5000/common', {
-        params: {
-          action: 'signOut'
-        }
+      this.$axios({
+        method: 'get',
+        url: '/signOut'
       })
       this.$router.push('/')
     },
     select () {
       this.isSelect = true
+      this.currentPageSelected = 1
     },
     showCompletedCourses () {
       this.isSelect = false
-      this.$axios.get('http://localhost:5000/student', {
-        params: {
-          sNo: this.sNo,
-          action: "completedCourse"
-        }
+      this.$axios({
+        method: 'get',
+        url: '/grade/'+this.sNo
       }).then(response => {
-        this.completedCourses = JSON.parse(response.data.completedCourses)
-        this.avgGrade = response.data.GPA
+        this.completedCourses = response.data
       }).catch(error => {
         console.log(error)
         this.isSelect = false
+      })
+      this.$axios({
+        method: 'get',
+        url: '/getGPA/'+this.sNo
+      }).then(response => {
+        this.avgGrade = response.data
+      }).catch(error => {
+        console.log(error)
       })
     },
     handleSelectChange (selection) {
@@ -235,14 +240,11 @@ export default {
     },
     handleSelect () {
       // select courses
-      this.$axios.get('http://localhost:5000/student', {
-        params: {
-          course: JSON.stringify(this.selectCourse),
-          sNo: this.sNo,
-          action: "selectCourse"
-        }
+      this.$axios({
+        method: 'post',
+        url: '/grade/'+this.sNo+'/'+JSON.stringify(this.selectCourse)
       }).then(response => {
-        if (response.data.Status === "Success") {
+        if (response.data === "success") {
           if (this.selectCourse.length===1) {
             this.$message({
               message: 'Select the course successfully.',
@@ -254,10 +256,8 @@ export default {
               type: 'success'
             })
           }
-        } else if (response.data.Status === "NotSignIn") {
-          this.$message.error('You need to sign in first.')
         } else {
-          let courses = JSON.parse(response.data.Courses)
+          let courses = response.data
           let failCCode = courses[0]
           for (let i = 1; i < courses.length; i++) {
             failCCode = failCCode + '，' + courses[i]
@@ -272,31 +272,28 @@ export default {
     updateSelected () {
       this.pageSize = 4
       // update selected courses
-      this.$axios.get('http://localhost:5000/student', {
-        params: {
-          sNo: this.$route.params.no,
-          pageNum: 1,
-          pageSize: this.pageSize,
-          action: "selectedCourse"
-        }
+      this.$axios({
+        method: 'get',
+        url: '/selectedCourseNum/'+this.$route.params.no
       }).then(response => {
-        console.log(response.data)
-        this.selectedCourses = JSON.parse(response.data.selectedCourses)
-        this.pageCountSelected = JSON.parse(response.data.pageCount)
+        this.pageCountSelected = JSON.parse(response.data)
+      })
+      this.$axios({
+        method: 'get',
+        url: '/selectedCourse/'+this.$route.params.no+'/'+this.currentPageSelected+'/'+this.pageSize
+      }).then(response => {
+        this.selectedCourses = response.data
       }).catch(error => {
         console.log(error)
       })
     },
     handleCurrentChangeSelected(currentPage) {
-      this.$axios.get('http://localhost:5000/student', {
-        params: {
-          sNo: this.$route.params.no,
-          pageNum: currentPage,
-          pageSize: this.pageSize,
-          action: "selectedCourse"
-        }
+      this.currentPageSelected = currentPage
+      this.$axios({
+        method: 'get',
+        url: '/selectedCourse/'+this.$route.params.no+'/'+currentPage+'/'+this.pageSize
       }).then(response => {
-        this.selectedCourses = JSON.parse(response.data.selectedCourses)
+        this.selectedCourses = response.data
       }).catch(error => {
         console.log(error)
       })
@@ -308,18 +305,17 @@ export default {
     },
     handleDrop () {
       // 退课
-      this.$axios.get('http://localhost:5000/student', {
+      this.$axios({
+        method: 'post',
         params: {
-          dropCourse: JSON.stringify(this.dropCourse),
-          sNo: this.sNo,
-          action: "dropCourse"
-        }
+          _method: 'delete'
+        },
+        url: '/grade/'+this.sNo+'/'+JSON.stringify(this.dropCourse)
       }).then(response => {
         this.$message({
           message: 'Drop the course(s) successfully.',
           type: 'success'
         })
-        console.log(response)
         this.updateSelected()
       }).catch(error => {
         console.log(error)
@@ -327,30 +323,27 @@ export default {
     },
     handleSearch () {
       // 搜索课程
-      this.$axios.get('http://localhost:5000/common', {
-        params: {
-          courseCode: this.inputCourseCode,
-          pageNum: 1,
-          pageSize: this.pageSize,
-          action: "searchCourse"
-        }
+      this.$axios({
+        method: 'get',
+        url: '/courseNum/'+this.inputCourseCode
       }).then(response => {
-        this.dataCourse = JSON.parse(response.data.dataCourse)
-        this.pageCountSearch = JSON.parse(response.data.pageCount)
+        this.pageCountSearch = JSON.parse(response.data)
+      })
+      this.$axios({
+        method: 'get',
+        url: '/course/'+this.inputCourseCode+'/1/'+this.pageSize
+      }).then(response => {
+        this.dataCourse = response.data
       }).catch(error => {
         console.log(error)
       })
     },
     handleCurrentChangeSearch(currentPage) {
-      this.$axios.get('http://localhost:5000/student', {
-        params: {
-          courseCode: this.inputCourseCode,
-          pageNum: currentPage,
-          pageSize: this.pageSize,
-          action: "searchCourse"
-        }
+      this.$axios({
+        method: 'get',
+        url: '/course/'+this.inputCourseCode+'/'+currentPage+'/'+this.pageSize
       }).then(response => {
-        this.dataCourse = JSON.parse(response.data.dataCourse)
+        this.dataCourse = response.data
       }).catch(error => {
         console.log(error)
       })
