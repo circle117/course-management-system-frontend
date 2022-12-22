@@ -66,7 +66,7 @@
                 border
                 height="250"
                 style="width: 100%">
-                <el-table-column prop="sNo" label="Student No"></el-table-column>
+                <el-table-column prop="studentNo" label="Student No"></el-table-column>
                 <el-table-column prop="grade" label="Grade"></el-table-column>
                 <el-table-column prop="point" label="Point"></el-table-column>
               </el-table>
@@ -113,7 +113,6 @@
                   <el-button
                     type="primary"
                     @click="handleCreateCourse"
-                    :disabled="!newCourse.cCode"
                     style="width: 100%">Create</el-button>
                 </el-col>
                 <el-col :span="12">
@@ -126,17 +125,23 @@
               <el-form
                 :model="newCourse"
                 label-width="120px">
-                <el-form-item label="Course Code">
-                  <el-input v-model="newCourse.cCode" maxlength="8" show-word-limit></el-input>
-                </el-form-item>
                 <el-form-item label="Course Name">
-                  <el-input v-model="newCourse.cName"></el-input>
+                  <el-input v-model="newCourse.name"></el-input>
                 </el-form-item>
                 <el-form-item label="Unit">
                   <el-input-number v-model="credit" :min="1"></el-input-number>
                 </el-form-item>
                 <el-form-item label="Department">
-                  <el-input v-model="newCourse.cDept"></el-input>
+                  <el-select
+                    v-model="newCourse.department.no"
+                    placeholder="Please select a department"
+                    style="width:300px">
+                    <el-option
+                      v-for="item in departmentList"
+                      :key="item.no"
+                      :label="item.name"
+                      :value="item.no"></el-option>
+                  </el-select>
                 </el-form-item>
               </el-form>
             </div>
@@ -170,11 +175,11 @@
                     @current-change="handleCourseSelectChange"
                     empty-text="No course data."
                     style="width: 100%">
-                    <el-table-column fixed prop="cCode" label="Course Code" width="120"></el-table-column>
-                    <el-table-column prop="cName" label="Course Name" width="150">
+                    <el-table-column fixed prop="code" label="Course Code" width="120"></el-table-column>
+                    <el-table-column prop="name" label="Course Name" width="150">
                       <template slot-scope="scope">
-                        <span v-show="!scope.row.edit">{{scope.row.cName}}</span>
-                        <el-input v-show="scope.row.edit" size="mini" v-model="scope.row.cName"></el-input>
+                        <span v-show="!scope.row.edit">{{scope.row.name}}</span>
+                        <el-input v-show="scope.row.edit" size="mini" v-model="scope.row.name"></el-input>
                       </template>
                     </el-table-column>
                     <el-table-column prop="credit" label="Unit" width="60">
@@ -183,13 +188,23 @@
                         <el-input v-show="scope.row.edit" size="mini" v-model="scope.row.credit"></el-input>
                       </template>
                     </el-table-column>
-                    <el-table-column prop="cDept" label="Department" width="150">
+                    <el-table-column prop="department.name" label="Department" width="150">
                       <template slot-scope="scope">
-                        <span v-show="!scope.row.edit">{{scope.row.cDept}}</span>
-                        <el-input v-show="scope.row.edit" size="mini" v-model="scope.row.cDept"></el-input>
+                        <span v-show="!scope.row.edit">{{scope.row.department.name}}</span>
+                        <el-select
+                          v-model="scope.row.department.no"
+                          v-show="scope.row.edit"
+                          size="mini"
+                          style="width:120px">
+                          <el-option
+                            v-for="item in departmentList"
+                            :key="item.no"
+                            :label="item.name"
+                            :value="item.no"></el-option>
+                        </el-select>
                       </template>
                     </el-table-column>
-                    <el-table-column prop="tNo" label="Teacher No" width="100"></el-table-column>
+                    <el-table-column prop="teacher.no" label="Teacher No" width="100"></el-table-column>
                     <el-table-column fixed="right" label="" width="150" align="center">
                       <template slot-scope="scope">
                         <el-button
@@ -259,7 +274,7 @@
                     <el-table-column fixed type="selection" width="55"></el-table-column>
                     <el-table-column fixed prop="no" label="Teacher No"></el-table-column>
                     <el-table-column fixed prop="name" label="Name"></el-table-column>
-                    <el-table-column prop="department" label="Department" width="150"></el-table-column>
+                    <el-table-column prop="department.name" label="Department" width="150"></el-table-column>
                   </el-table>
                   <el-pagination
                     v-show="this.dataTeacher!==''"
@@ -289,7 +304,7 @@
                   <el-button
                     type="primary"
                     @click="handleCreateStudent"
-                    :disabled="(!newStudent.no) || (!newStudent.username)"
+                    :disabled="(!newStudent.firstName) || (!newStudent.lastName)"
                     style="width: 100%">Create</el-button>
                 </el-col>
                 <el-col :span="12">
@@ -302,8 +317,11 @@
               <el-form
                 :model="newStudent"
                 label-width="120px">
-                <el-form-item label="Student No">
-                  <el-input v-model="newStudent.no" maxlength="8" show-word-limit></el-input>
+                <el-form-item label="Year">
+                  <el-date-picker
+                    v-model="newStudent.no"
+                    type="year"
+                    style="width:300px"></el-date-picker>
                 </el-form-item>
                 <div>
                   <el-row :gutter="10">
@@ -327,16 +345,20 @@
                   <el-date-picker
                     v-model="newStudent.birthday"
                     value-format="yyyy-MM-dd"
-                    type="date"></el-date-picker>
+                    type="date"
+                    style="width:300px"></el-date-picker>
                 </el-form-item>
                 <el-form-item label="Department">
-                  <el-input v-model="newStudent.department"></el-input>
-                </el-form-item>
-                <el-form-item label="Username">
-                  <el-input v-model="newStudent.username"></el-input>
-                </el-form-item>
-                <el-form-item label="Password">
-                  <el-input v-model="newStudent.password"></el-input>
+                  <el-select
+                    v-model="newStudent.department.no"
+                    placeholder="Please select a department"
+                    style="width:300px">
+                    <el-option
+                      v-for="item in departmentList"
+                      :key="item.no"
+                      :label="item.name"
+                      :value="item.no"></el-option>
+                  </el-select>
                 </el-form-item>
               </el-form>
             </div>
@@ -361,7 +383,7 @@
                 empty-text="No student data."
                 style="width: 100%">
                 <el-table-column prop="no" label="Student No" width="120"></el-table-column>
-                <el-table-column prop="name" label="Name">
+                <el-table-column prop="name" label="Name" width="180">
                   <template slot-scope="scope">
                     <span v-show="!scope.row.edit">{{scope.row.name}}</span>
                     <el-input v-show="scope.row.edit" size="mini" v-model="scope.row.name"></el-input>
@@ -379,7 +401,7 @@
                     </el-select>
                   </template>
                 </el-table-column>
-                <el-table-column prop="birthday" label="Birthday">
+                <el-table-column prop="birthday" label="Birthday" width="120">
                   <template slot-scope="scope">
                     <span v-show="!scope.row.edit">{{scope.row.birthday}}</span>
                     <el-date-picker
@@ -392,12 +414,22 @@
                 </el-table-column>
                 <el-table-column prop="department" label="Department">
                   <template slot-scope="scope">
-                    <span v-show="!scope.row.edit">{{scope.row.department}}</span>
-                    <el-input v-show="scope.row.edit" size="mini" v-model="scope.row.department"></el-input>
+                    <span v-show="!scope.row.edit">{{scope.row.department.name}}</span>
+                    <el-select
+                      v-model="scope.row.department.no"
+                      v-show="scope.row.edit"
+                      size="mini"
+                      style="width:120px">
+                      <el-option
+                        v-for="item in departmentList"
+                        :key="item.no"
+                        :label="item.name"
+                        :value="item.no"></el-option>
+                    </el-select>
                   </template>
                 </el-table-column>
-                <el-table-column prop="username" label="Username"></el-table-column>
-                <el-table-column label="" with="55" align="center">
+                <el-table-column prop="username" label="Username" width="180"></el-table-column>
+                <el-table-column label="" width="180" align="center">
                   <template slot-scope="scope">
                     <el-button
                       v-show="!scope.row.edit"
@@ -459,7 +491,6 @@
                   <el-button
                     type="primary"
                     @click="handleCreateTeacher"
-                    :disabled="!newTeacher.no || !newTeacher.username"
                     style="width: 100%">Create</el-button>
                 </el-col>
                 <el-col :span="12">
@@ -472,9 +503,6 @@
               <el-form
                 :model="newTeacher"
                 label-width="120px">
-                <el-form-item label="Teacher No">
-                  <el-input v-model="newTeacher.no" maxlength="8" show-word-limit></el-input>
-                </el-form-item>
                 <div>
                   <el-row :gutter="10">
                     <el-col :span="12">
@@ -500,13 +528,16 @@
                     type="date"></el-date-picker>
                 </el-form-item>
                 <el-form-item label="Department">
-                  <el-input v-model="newTeacher.department"></el-input>
-                </el-form-item>
-                <el-form-item label="Username">
-                  <el-input v-model="newTeacher.username"></el-input>
-                </el-form-item>
-                <el-form-item label="Password">
-                  <el-input v-model="newTeacher.password"></el-input>
+                  <el-select
+                    v-model="newTeacher.department.no"
+                    placeholder="Please select a department"
+                    style="width:300px">
+                    <el-option
+                      v-for="item in departmentList"
+                      :key="item.no"
+                      :label="item.name"
+                      :value="item.no"></el-option>
+                  </el-select>
                 </el-form-item>
               </el-form>
             </div>
@@ -563,8 +594,19 @@
                 </el-table-column>
                 <el-table-column prop="department" label="Department">
                   <template slot-scope="scope">
-                    <span v-show="!scope.row.edit">{{scope.row.department}}</span>
-                    <el-input v-show="scope.row.edit" size="mini" v-model="scope.row.department"></el-input>
+                    <span v-show="!scope.row.edit">{{scope.row.department.name}}</span>
+                    <el-select
+                      v-model="scope.row.department.no"
+                      v-show="scope.row.edit"
+                      placeholder="Please select a department"
+                      size="mini"
+                      style="width:300px">
+                      <el-option
+                        v-for="item in departmentList"
+                        :key="item.no"
+                        :label="item.name"
+                        :value="item.no"></el-option>
+                    </el-select>
                   </template>
                 </el-table-column>
                 <el-table-column prop="username" label="Username"></el-table-column>
@@ -632,6 +674,14 @@ export default {
     }).catch(error => {
       console.log(error)
     })
+    this.$axios({
+      method: 'get',
+      url: '/department'
+    }).then(response => {
+      this.departmentList = response.data
+    }).catch(error => {
+      console.log(error)
+    })
     return {
       aNo: this.$route.params.no,
       aName: this.$route.params.name,
@@ -650,17 +700,26 @@ export default {
       activeNameCourse: 'first',
       credit: 1,
       newCourse: {
-        cCode: null,
-        cName: null,
+        name: null,
         credit: null,
-        cDept: null,
-        tNo: null
+        department: {
+          no: null,
+          name: null
+        }
       },
       dataTeacher: [],
       teacherSelection: [],
       dataCourse: [],
       courseSelection: null,
-      oldCourse: {},
+      oldCourse: {
+        code: null,
+        name: null,
+        credit: null,
+        department: {
+          no: null,
+          name: null
+        }
+      },
       editableCourse: true,
       courseSearchForm: {
         courseCode: ''
@@ -668,37 +727,64 @@ export default {
       // student management
       activeNameStudent: 'first',
       newStudent: {
-        no: null,
+        no: new Date().getFullYear().toString(),
         name: null,
         firstName: null,
         lastName: null,
         gender: "male",
         birthday: null,
-        department: null,
+        department: {
+          no: null,
+          name: null
+        },
         username: null,
         password: null
       },
-      oldStudent: {},
+      oldStudent: {
+        no: new Date().getFullYear().toString(),
+        name: null,
+        firstName: null,
+        lastName: null,
+        gender: "male",
+        birthday: null,
+        department: {
+          no: null,
+          name: null
+        },
+        username: null,
+        password: null
+      },
       editStudent: {},
       dataStudent: [],
       editableStudent: true,
       StudentSearchForm: {
         studentName: ''
       },
+      departmentList: [],
       // teacher management
       activeNameTeacher: 'first',
       newTeacher:{
-        no: null,
         name: null,
         firstName: null,
         lastName: null,
         gender: "male",
         birthday: null,
-        department: null,
-        username: null,
-        password: null
+        department: {
+          no: null,
+          name: null
+        },
       },
-      oldTeacher: {},
+      oldTeacher: {
+        no: null,
+        name: null,
+        gender: "male",
+        birthday: null,
+        department: {
+          no: null,
+          name: null
+        },
+        username: null
+      },
       editTeacher: {},
       editableTeacher: true,
       teacherSearchForm: {
@@ -819,8 +905,13 @@ export default {
     },
     handleClearCourse() {
       for(const item in this.newCourse) {
-        this.newCourse[item] = null
+        if (item !== "department") {
+          this.newCourse[item] = null
+        }
       }
+      this.credit = 1
+      this.newCourse["department"]["no"] = null
+      this.newCourse["department"]["name"] = null
     },
     // get course list and teacher list
     updateCourse() {
@@ -837,6 +928,9 @@ export default {
         this.dataCourse = []
         response.data.forEach(item => {
           item.edit = false
+          if (!item.hasOwnProperty("teacher")) {
+            item["teacher"] = {"no": null, "name": null}
+          }
           this.dataCourse.push(item)
         })
       })
@@ -851,6 +945,9 @@ export default {
           this.dataCourse = []
           response.data.forEach(item => {
             item.edit = false
+            if (!item.hasOwnProperty("teacher")) {
+              item["teacher"] = {"no": null, "name": null}
+            }
             this.dataCourse.push(item)
           })
         })
@@ -960,7 +1057,7 @@ export default {
           params: {
             _method: 'put'
           },
-          url: '/addTeacher/'+this.courseSelection.cCode+'/'+JSON.stringify(this.teacherSelection),
+          url: '/addTeacher/'+this.courseSelection.code+'/'+JSON.stringify(this.teacherSelection),
         }).then(response => {
           if (response.data === "success") {
             this.$message({
@@ -996,28 +1093,38 @@ export default {
       this.oldCourse["cCode"] = null
       this.oldCourse["cName"] = null
       this.oldCourse["credit"] = null
-      this.oldCourse["department"] = null
       this.oldCourse["tNo"] = null
       this.dataCourse[index]["edit"] = true
       for (const key in row) {
-        this.oldCourse[key] = row[key]
+        if (key!=="department") {
+          this.oldCourse[key] = row[key]
+        }
       }
+      this.oldCourse["department"]["no"] = row.department.no
+      this.oldCourse["department"]["name"] = row.department.name
       this.editableCourse = false
     },
     handleCancelEditCourse(index, row) {
       for (const key in this.oldCourse) {
-        this.dataCourse[index][key] = this.oldCourse[key]
+        if (key!=="department") {
+          this.dataCourse[index][key] = this.oldCourse[key]
+        }
       }
+      this.dataCourse[index]["department"]["no"] = this.oldCourse["department"]["no"]
+      this.dataCourse[index]["department"]["name"] = this.oldCourse["department"]["name"]
       this.dataCourse[index]["edit"] = false
       this.editableCourse = true
     },
     handleEditCourse(index, row) {
       let flag = false;
       for (const key in row) {
-        if (this.oldCourse[key]!==row[key]) {
+        if (key!=="department" && this.oldCourse[key]!==row[key]) {
           flag = true;
           break
         }
+      }
+      if (row["department"]["no"]!==this.oldCourse["department"]["no"]) {
+        flag = true
       }
       if (flag) {
         this.$axios({
@@ -1044,12 +1151,18 @@ export default {
     },
     // delete course
     handleDeleteCourse(index, row) {
+      let teacherNo
+      if (row.teacher === null) {
+        teacherNo = null
+      } else {
+        teacherNo = row.teacher.no
+      }
       this.$axios({
         method: 'post',
         params: {
           _method: 'delete'
         },
-        url: '/course/'+row.cCode+'/'+row.tNo
+        url: '/course/'+row.code+'/'+teacherNo
       }).then( response => {
         if (response.data === "success") {
           this.$message({
@@ -1146,6 +1259,7 @@ export default {
       } else {
         this.newStudent.name = null
       }
+      console.log(this.newStudent)
       this.$axios({
         method: 'post',
         url: '/student/'+JSON.stringify(this.newStudent)
@@ -1164,13 +1278,14 @@ export default {
       })
     },
     handleClearStudent() {
-      this.newStudent["no"] = null
+      this.newStudent["no"] = "2022"
       this.newStudent["name"] = null
       this.newStudent["firstName"] = null
       this.newStudent["lastName"] = null
       this.newStudent["gender"] = "male"
       this.newStudent["birthday"] = null
-      this.newStudent["department"] = null
+      this.newStudent["department"]["no"] = null
+      this.newStudent["department"]["name"] = null
       this.newStudent["username"] = null
       this.newStudent["password"] = null
     },
@@ -1179,28 +1294,38 @@ export default {
       this.oldStudent["name"] = null
       this.oldStudent["gender"] = null
       this.oldStudent["birthday"] = null
-      this.oldStudent["department"] = null
       this.oldStudent["username"] = null
       this.editableStudent = false
       this.dataStudent[index]["edit"] = true
       for (var key in row) {
-        this.oldStudent[key] = row[key]
+        if (key!=="department") {
+          this.oldStudent[key] = row[key]
+        }
       }
+      this.oldStudent["department"]["no"] = row.department.no
+      this.oldStudent["department"]["name"] = row.department.name
     },
     handleCancelEditStudent(index, row) {
       for (const key in this.oldStudent) {
-        this.dataStudent[index][key] = this.oldStudent[key]
+        if (key !== "department") {
+          this.dataStudent[index][key] = this.oldStudent[key]
+        }
       }
+      this.dataStudent[index]["department"]["no"] = this.oldStudent["department"]["no"]
+      this.dataStudent[index]["department"]["name"] = this.oldStudent["department"]["name"]
       this.dataStudent[index]["edit"] = false
       this.editableStudent = true
     },
     handleEditStudent(index, row) {
       let flag = false
       for(const item in row) {
-        if (this.oldStudent[item] !== row[item]) {
+        if (item!=="department" && this.oldStudent[item] !== row[item]) {
           flag = true
           break
         }
+      }
+      if (this.oldStudent.department.no !== row.department.no) {
+        flag = true
       }
       if (flag) {
         this.$axios({
@@ -1265,7 +1390,7 @@ export default {
       }).then(response => {
         if (response.data === "success") {
           this.$message({
-            message: "Successfully add new teacher.",
+            message: "Successfully add a new teacher.",
             type: "success"
           })
           this.handleClearTeacher()
@@ -1277,43 +1402,50 @@ export default {
       })
     },
     handleClearTeacher() {
-      this.newTeacher.no = null
       this.newTeacher.name = null
       this.newTeacher.firstName = null
       this.newTeacher.lastName = null
       this.newTeacher.gender = "male"
       this.newTeacher.birthday = null
-      this.newTeacher.department = null
-      this.newTeacher.username = null
-      this.newTeacher.password = null
+      this.newTeacher.department = {"no": null, "name": null}
     },
     handleChangeEditStatusTeacher(index, row) {
       this.oldTeacher["no"] = null
       this.oldTeacher["name"] = null
       this.oldTeacher["gender"]= null
       this.oldTeacher["birthday"] = null
-      this.oldTeacher["department"] = null
       this.oldTeacher["username"] = null
       this.dataTeacher[index]["edit"] = true
       for (const item in row) {
-        this.oldTeacher[item] = row[item]
+        if (item!=="department") {
+          this.oldTeacher[item] = row[item]
+        }
       }
+      this.oldTeacher["department"]["no"] = row["department"]["no"]
+      this.oldTeacher["department"]["name"] = row["department"]["name"]
       this.editableTeacher = false
     },
     handleCancelEditTeacher(index, row) {
       for (const key in this.oldTeacher) {
-        this.dataTeacher[index][key] = this.oldTeacher[key]
+        if (key!=="department") {
+          this.dataTeacher[index][key] = this.oldTeacher[key]
+        }
       }
+      this.dataTeacher[index]["department"]["no"] = this.oldTeacher["department"]["no"]
+      this.dataTeacher[index]["department"]["name"] = this.oldTeacher["department"]["name"]
       this.dataTeacher[index].edit = false
       this.editableTeacher = true
     },
     handleEditTeacher(index, row) {
       let flag = false;
       for (const item in row) {
-        if (row[item] !== this.oldTeacher[item]) {
+        if (item!=="department" && row[item] !== this.oldTeacher[item]) {
           flag = true
           break
         }
+      }
+      if(this.oldTeacher["department"]["no"]!==row["department"]["no"]) {
+        flag=true
       }
       if (flag) {
         this.$axios({

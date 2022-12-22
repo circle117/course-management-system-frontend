@@ -54,7 +54,7 @@
               border
               height="250"
               style="width: 100%">
-              <el-table-column prop="sNo" label="Student No"></el-table-column>
+              <el-table-column prop="studentNo" label="Student No"></el-table-column>
               <el-table-column prop="grade" label="Grade"></el-table-column>
               <el-table-column prop="point" label="Point"></el-table-column>
             </el-table>

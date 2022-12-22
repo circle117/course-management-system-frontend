@@ -66,11 +66,11 @@
               @selection-change="handleSelectChange"
               style="width: 100%">
               <el-table-column type="selection" width="55"></el-table-column>
-              <el-table-column prop="cCode" label="Course Code"></el-table-column>
-              <el-table-column prop="cName" label="Course Name"></el-table-column>
+              <el-table-column prop="code" label="Course Code"></el-table-column>
+              <el-table-column prop="name" label="Course Name"></el-table-column>
               <el-table-column prop="credit" label="Unit" width="70"></el-table-column>
-              <el-table-column prop="cDept" label="Department"></el-table-column>
-              <el-table-column prop="tName" label="Teacher"></el-table-column>
+              <el-table-column prop="department.name" label="Department"></el-table-column>
+              <el-table-column prop="teacher.name" label="Teacher"></el-table-column>
             </el-table>
             <el-pagination
               v-show="this.dataCourse!==''"
@@ -103,11 +103,11 @@
               @selection-change="handleDropChange"
               style="width: 100%">
               <el-table-column type="selection" width="55"></el-table-column>
-              <el-table-column prop="cCode" label="Course Code"></el-table-column>
-              <el-table-column prop="cName" label="Course Name"></el-table-column>
+              <el-table-column prop="code" label="Course Code"></el-table-column>
+              <el-table-column prop="name" label="Course Name"></el-table-column>
               <el-table-column prop="credit" label="Unit" width="70"></el-table-column>
-              <el-table-column prop="cDept" label="Department"></el-table-column>
-              <el-table-column prop="tName" label="Teacher"></el-table-column>
+              <el-table-column prop="department.name" label="Department"></el-table-column>
+              <el-table-column prop="teacher.name" label="Teacher"></el-table-column>
             </el-table>
             <el-pagination
               v-show="this.selectedCourses!==''"
@@ -129,8 +129,8 @@
             border
             empty-text="No courses completed."
             style="width: 100%">
-            <el-table-column prop="cCode" label="Course Code"></el-table-column>
-            <el-table-column prop="cName" label="Course Name"></el-table-column>
+            <el-table-column prop="course.code" label="Course Code"></el-table-column>
+            <el-table-column prop="course.name" label="Course Name"></el-table-column>
             <el-table-column prop="grade" label="Grade"></el-table-column>
             <el-table-column prop="point" label="Point"></el-table-column>
           </el-table>
@@ -158,11 +158,11 @@
               border
               empty-text="No courses completed."
               style="width: 100%">
-              <el-table-column prop="cCode" label="Course Code"></el-table-column>
-              <el-table-column prop="cName" label="Course Name"></el-table-column>
+              <el-table-column prop="course.code" label="Course Code"></el-table-column>
+              <el-table-column prop="course.name" label="Course Name"></el-table-column>
               <el-table-column prop="grade" label="Grade"></el-table-column>
               <el-table-column prop="point" label="Point"></el-table-column>
-              <el-table-column prop="credit" label="Unit"></el-table-column>
+              <el-table-column prop="course.credit" label="Unit"></el-table-column>
             </el-table>
             <p>GPA: {{avgGrade}}</p>
           </el-card>
@@ -312,11 +312,15 @@ export default {
         },
         url: '/grade/'+this.sNo+'/'+JSON.stringify(this.dropCourse)
       }).then(response => {
-        this.$message({
-          message: 'Drop the course(s) successfully.',
-          type: 'success'
-        })
-        this.updateSelected()
+        if (response.data==="success") {
+          this.$message({
+            message: 'Drop the course(s) successfully.',
+            type: 'success'
+          })
+          this.updateSelected()
+        } else {
+          this.$message.error('There is something wrong with the system. Please try it later.')
+        }
       }).catch(error => {
         console.log(error)
       })
